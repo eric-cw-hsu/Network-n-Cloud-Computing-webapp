@@ -1,4 +1,38 @@
-# Template GO
+# Webapp
+  
+## Installation
+1. Install dependencies
+```sh
+$ go mod tidy
+```
+2. Set up environment variables
+   Create a `config.yaml` file in the project root and add the necessary environment variables
+```yaml
+app:
+    name: 
+    environment:
+
+database:
+    host:
+    port:
+    username:
+    password:
+    name:
+
+server:
+    port:
+
+auth:
+    jwt_secret:
+    token_expiration: # in second
+
+user:
+    password_min_length:
+```
+3. Run the application
+   ```sh
+   $ go run cmd/api/main.go
+   ```
 
 ## App Structure
 This template follows the Domain-Driven Design (DDD) principle
@@ -63,40 +97,6 @@ The `domain` layer contains the core business logic of the application. This is 
 The `application` layer contains the application-specific logic that orchestrates the use of domain services and entities. This layer is responsible for implementing use cases and application workflows.
 
 - Services: These are higher-level services that coordinate the use of domain services to fulfill application-specific requirements.
-  
-## Installation
-1. Install dependencties
-```sh
-$ go mod tidt
-```
-2. Set up enviroment variables
-   Create a `config.yaml` file in the project root and add the necessary environment variables
-```yaml
-app:
-    name: 
-    environment:
-
-database:
-    host:
-    port:
-    username:
-    password:
-    name:
-
-server:
-    port:
-
-auth:
-    jwt_secret:
-    token_expiration: # in second
-
-user:
-    password_min_length:
-```
-3. Run the application
-   ```sh
-   $ go run cmd/api/main.go
-   ```
 
 ## License
 This project is licensed under a proprietary license. All rights are reserved by the owner. Unauthorized copying, distribution, or modification of this code is strictly prohibited.
