@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-template/internal/auth"
+	"go-template/internal/shared"
 	"go-template/internal/shared/infrastructure/logger"
 	"go-template/internal/shared/infrastructure/postgres"
 	"go-template/internal/shared/interfaces/http"
@@ -30,16 +31,16 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	db, err := postgres.NewDB(
-		fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-			config.App.Database.Username,
-			config.App.Database.Password,
-			config.App.Database.Host,
-			config.App.Database.Port,
-			config.App.Database.Name,
-		),
+	dbSourceString := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		config.App.Database.Username,
+		config.App.Database.Password,
+		config.App.Database.Host,
+		config.App.Database.Port,
+		config.App.Database.Name,
 	)
+
+	db, err := postgres.NewDB(dbSourceString)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -57,6 +58,7 @@ func main() {
 	)
 
 	server.AddModules(
+		shared.NewModule(),
 		authModule,
 	)
 
