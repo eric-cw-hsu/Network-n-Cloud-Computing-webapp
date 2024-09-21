@@ -28,6 +28,7 @@ func (s *Server) AddModule(module Module) {
 }
 
 func (s *Server) SetupRoutes() {
+	s.router.HandleMethodNotAllowed = true
 
 	// Swagger
 	// available only in development mode

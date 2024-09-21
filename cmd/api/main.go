@@ -54,6 +54,7 @@ func main() {
 
 	server.AddMiddlewares(
 		middleware.NewRequestLoggerMiddleware(logger).Handler(),
+		middleware.RemovePayloadForMethodNotAllowed(),
 		gin.Recovery(),
 	)
 
