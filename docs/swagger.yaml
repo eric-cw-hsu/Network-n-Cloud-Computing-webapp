@@ -1,0 +1,137 @@
+basePath: /
+definitions:
+  go-template_internal_auth_interfaces_dto.LoginInput:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secretpassword
+        type: string
+      username:
+        example: johndoe
+        type: string
+    type: object
+  go-template_internal_auth_interfaces_dto.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UserResponse'
+    type: object
+  go-template_internal_auth_interfaces_dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  go-template_internal_user_interfaces_dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  internal_auth_interfaces.RegisterInput:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secretpassword
+        type: string
+      username:
+        example: johndoe
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a sample server for Go Template API.
+  title: Go Template API Documentation
+  version: "1.0"
+paths:
+  /api/v1/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to the application
+      parameters:
+      - description: User login details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/go-template_internal_auth_interfaces_dto.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-template_internal_auth_interfaces_dto.LoginResponse'
+      summary: Login
+      tags:
+      - auth
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User registration details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth_interfaces.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UserResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /api/v1/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-template_internal_user_interfaces_dto.UserResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    description: Authorization token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
