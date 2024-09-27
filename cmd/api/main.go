@@ -1,12 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"go-template/internal/auth"
 	"go-template/internal/shared"
+	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
-	"go-template/internal/shared/infrastructure/postgres"
 	"go-template/internal/shared/interfaces/http"
 	"go-template/internal/shared/middleware"
 	"log"
@@ -26,7 +25,6 @@ import (
 // @in header
 // @name Authorization
 // @description Authorization token
-
 func main() {
 	loadAppConfig()
 
@@ -46,7 +44,7 @@ func main() {
 	)
 
 	server.AddModules(
-		shared.NewModule(),
+		shared.NewModule(db),
 		authModule,
 	)
 
@@ -59,8 +57,8 @@ func loadAppConfig() {
 	}
 }
 
-func initDatabase() *sql.DB {
-	db, err := postgres.NewDB(
+func initDatabase() database.BaseDatabase {
+	postgres := database.NewPostgresDatabase(
 		fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 			config.App.Database.Username,
@@ -71,11 +69,7 @@ func initDatabase() *sql.DB {
 		),
 	)
 
-	if err != nil {
-		log.Fatalf("Failed to created database instance: %v", err)
-	}
-
-	return db
+	return postgres
 }
 
 func serveAndListen(server *http.Server) {

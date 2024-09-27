@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/interfaces/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,8 +11,8 @@ type Module struct {
 	handler *http.SharedHandler
 }
 
-func NewModule() *Module {
-	handler := http.NewSharedHandler()
+func NewModule(db database.BaseDatabase) *Module {
+	handler := http.NewSharedHandler(db)
 
 	return &Module{
 		handler: handler,
