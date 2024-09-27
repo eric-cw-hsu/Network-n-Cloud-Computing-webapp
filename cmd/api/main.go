@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"go-template/internal/auth"
 	"go-template/internal/shared"
+	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
-	"go-template/internal/shared/infrastructure/postgres"
 	"go-template/internal/shared/interfaces/http"
 	"go-template/internal/shared/middleware"
 	"log"
@@ -25,25 +25,10 @@ import (
 // @in header
 // @name Authorization
 // @description Authorization token
-
 func main() {
-	if err := sharedConfig.Load(&config.App); err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
+	loadAppConfig()
 
-	dbSourceString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		config.App.Database.Username,
-		config.App.Database.Password,
-		config.App.Database.Host,
-		config.App.Database.Port,
-		config.App.Database.Name,
-	)
-
-	db, err := postgres.NewDB(dbSourceString)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
+	db := initDatabase()
 	defer db.Close()
 
 	logger := logger.NewLogrusLogger("./logs")
@@ -59,10 +44,35 @@ func main() {
 	)
 
 	server.AddModules(
-		shared.NewModule(),
+		shared.NewModule(db),
 		authModule,
 	)
 
+	serveAndListen(server)
+}
+
+func loadAppConfig() {
+	if err := sharedConfig.Load(&config.App); err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+}
+
+func initDatabase() database.BaseDatabase {
+	postgres := database.NewPostgresDatabase(
+		fmt.Sprintf(
+			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			config.App.Database.Username,
+			config.App.Database.Password,
+			config.App.Database.Host,
+			config.App.Database.Port,
+			config.App.Database.Name,
+		),
+	)
+
+	return postgres
+}
+
+func serveAndListen(server *http.Server) {
 	log.Println("Starting server on :" + fmt.Sprint(config.App.Server.Port))
 	if err := server.Start(":" + fmt.Sprint(config.App.Server.Port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

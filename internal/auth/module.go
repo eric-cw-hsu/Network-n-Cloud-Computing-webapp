@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"database/sql"
 	"go-template/internal/auth/application"
 	"go-template/internal/auth/config"
 	"go-template/internal/auth/domain"
@@ -10,6 +9,7 @@ import (
 	"go-template/internal/auth/interfaces/http"
 	"go-template/internal/auth/interfaces/http/middleware"
 	sharedConfig "go-template/internal/shared/config"
+	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
 	"log"
 
@@ -22,7 +22,7 @@ type Module struct {
 	authConfig *config.AuthConfig
 }
 
-func NewModule(db *sql.DB, logger logger.Logger) *Module {
+func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
 	// load auth config with viper
 	authConfig := loadConfig()
 
