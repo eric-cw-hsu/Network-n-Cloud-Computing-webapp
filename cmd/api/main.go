@@ -44,7 +44,7 @@ func main() {
 	)
 
 	server.AddModules(
-		shared.NewModule(db),
+		shared.NewModule(db, logger),
 		authModule,
 	)
 
@@ -68,6 +68,14 @@ func initDatabase() database.BaseDatabase {
 			config.App.Database.Name,
 		),
 	)
+
+	// comment this block due to the healthz check for assignment
+	// Ref: https://northeastern.instructure.com/courses/192927/assignments/2459523
+	/**
+	if err := postgres.AutoMigrate(); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+	*/
 
 	return postgres
 }

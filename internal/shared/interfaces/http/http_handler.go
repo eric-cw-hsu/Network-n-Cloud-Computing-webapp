@@ -2,17 +2,20 @@ package http
 
 import (
 	"go-template/internal/shared/infrastructure/database"
+	"go-template/internal/shared/infrastructure/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 type SharedHandler struct {
-	db database.BaseDatabase
+	db     database.BaseDatabase
+	logger logger.Logger
 }
 
-func NewSharedHandler(db database.BaseDatabase) *SharedHandler {
+func NewSharedHandler(db database.BaseDatabase, logger logger.Logger) *SharedHandler {
 	return &SharedHandler{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -32,7 +35,8 @@ func (h *SharedHandler) Healthz(c *gin.Context) {
 	// add no-cache headers
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	if h.db.CheckDBConnection() != nil {
+	if err := h.db.CheckDBConnection(); err != nil {
+		h.logger.Error("Database is not healthy ", err)
 		c.Status(503)
 		return
 	}

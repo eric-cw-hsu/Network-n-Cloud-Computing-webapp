@@ -11,4 +11,5 @@ type BaseDatabase interface {
 	Close()
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+	AutoMigrate() error
 }
