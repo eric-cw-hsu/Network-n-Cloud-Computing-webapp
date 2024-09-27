@@ -47,11 +47,21 @@ func (m *MockDatabase) AutoMigrate() error {
 	return args.Error(0)
 }
 
+type MockLogger struct {
+	mock.Mock
+}
+
+func (m *MockLogger) Info(args ...interface{})  {}
+func (m *MockLogger) Error(args ...interface{}) {}
+func (m *MockLogger) Warn(args ...interface{})  {}
+func (m *MockLogger) Debug(args ...interface{}) {}
+
 func TestHealthz(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	database := new(MockDatabase)
-	sharedHandler := NewSharedHandler(database)
+	logger := new(MockLogger)
+	sharedHandler := NewSharedHandler(database, logger)
 
 	router := gin.New()
 	router.GET("/healthz", sharedHandler.Healthz)

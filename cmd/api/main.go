@@ -44,7 +44,7 @@ func main() {
 	)
 
 	server.AddModules(
-		shared.NewModule(db),
+		shared.NewModule(db, logger),
 		authModule,
 	)
 
