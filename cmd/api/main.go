@@ -69,9 +69,13 @@ func initDatabase() database.BaseDatabase {
 		),
 	)
 
+	// comment this block due to the healthz check for assignment
+	// Ref: https://northeastern.instructure.com/courses/192927/assignments/2459523
+	/**
 	if err := postgres.AutoMigrate(); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
+	*/
 
 	return postgres
 }
