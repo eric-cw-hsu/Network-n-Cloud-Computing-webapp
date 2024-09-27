@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"go-template/internal/auth/domain"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/pkg/apperrors"
@@ -24,7 +23,6 @@ func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUs
 	query := `INSERT INTO users (email, username, password, created_at, updated_at, last_login_at) VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := r.db.ExecContext(ctx, query, user.Email, user.Username, user.PasswordHash, user.CreatedAt, user.UpdatedAt, user.LastLoginAt)
 	if err != nil {
-		fmt.Println(err)
 		return apperrors.NewInternal()
 	}
 
