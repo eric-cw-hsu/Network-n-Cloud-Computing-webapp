@@ -26,14 +26,14 @@ func NewSharedHandler(db database.BaseDatabase, logger logger.Logger) *SharedHan
 // @Success 200
 // @Router /healthz [get]
 func (h *SharedHandler) Healthz(c *gin.Context) {
+	// add no-cache headers
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+
 	// check if there is any payload in the request
 	if c.Request.ContentLength > 0 {
 		c.Status(400)
 		return
 	}
-
-	// add no-cache headers
-	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	if err := h.db.CheckDBConnection(); err != nil {
 		h.logger.Error("Database is not healthy ", err)
