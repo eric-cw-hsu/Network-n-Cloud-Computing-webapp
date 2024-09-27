@@ -69,6 +69,10 @@ func initDatabase() database.BaseDatabase {
 		),
 	)
 
+	if err := postgres.AutoMigrate(); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
 	return postgres
 }
 

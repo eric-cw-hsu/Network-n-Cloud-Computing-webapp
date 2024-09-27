@@ -42,6 +42,11 @@ func (m *MockDatabase) QueryRowContext(ctx context.Context, query string, args .
 	return arguments.Get(0).(*sql.Row)
 }
 
+func (m *MockDatabase) AutoMigrate() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
 func TestHealthz(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
