@@ -83,6 +83,11 @@ func TestHealthz(t *testing.T) {
 		if writer.Body.String() != "" {
 			t.Errorf("expected empty response body, got %s", writer.Body.String())
 		}
+
+		// check if there is a header with no-cache
+		if writer.Header().Get("Cache-Control") != "no-cache, no-store, must-revalidate" {
+			t.Errorf("expected Cache-Control header with no-cache, no-store, must-revalidate, got %s", writer.Header().Get("Cache-Control	"))
+		}
 	})
 
 	t.Run("error in database connection", func(t *testing.T) {
@@ -102,6 +107,11 @@ func TestHealthz(t *testing.T) {
 		if writer.Body.String() != "" {
 			t.Errorf("expected empty response body, got %s", writer.Body.String())
 		}
+
+		// check if there is a header with no-cache
+		if writer.Header().Get("Cache-Control") != "no-cache, no-store, must-revalidate" {
+			t.Errorf("expected Cache-Control header with no-cache, no-store, must-revalidate, got %s", writer.Header().Get("Cache-Control	"))
+		}
 	})
 
 	t.Run("bad request", func(t *testing.T) {
@@ -117,6 +127,11 @@ func TestHealthz(t *testing.T) {
 		// Check if the response body is empty
 		if writer.Body.String() != "" {
 			t.Errorf("expected empty response body, got %s", writer.Body.String())
+		}
+
+		// check if there is a header with no-cache
+		if writer.Header().Get("Cache-Control") != "no-cache, no-store, must-revalidate" {
+			t.Errorf("expected Cache-Control header with no-cache, no-store, must-revalidate, got %s", writer.Header().Get("Cache-Control	"))
 		}
 	})
 }
