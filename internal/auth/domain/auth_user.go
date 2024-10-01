@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"go-template/pkg/apperrors"
 	"time"
 )
 
@@ -26,20 +25,21 @@ var (
 
 func NewAuthUser(email string, username string, password string) (*AuthUser, error) {
 	if email == "" || username == "" {
-		return nil, apperrors.NewBadRequest("email or username cannot be empty for both")
+		return &AuthUser{}, errors.New("email and username cannot be empty")
 	}
 
 	if password == "" {
-		return nil, apperrors.NewBadRequest("password cannot be empty")
+		return &AuthUser{}, errors.New("password cannot be empty")
 	}
 
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return nil, apperrors.NewInternal()
+		return &AuthUser{}, err
 	}
 
 	return &AuthUser{
 		Email:        email,
+		Username:     username,
 		PasswordHash: string(hashedPassword),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),

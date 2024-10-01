@@ -3,7 +3,6 @@ package http
 import (
 	"go-template/internal/auth/application"
 	"go-template/internal/auth/interfaces/dto"
-	"go-template/pkg/apperrors"
 	"net/http"
 
 	_ "go-template/docs"
@@ -43,8 +42,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user, err := h.authService.Register(c.Request.Context(), input.Email, input.Username, input.Password)
 	if err != nil {
-		appErr := err.(*apperrors.Error)
-		c.JSON(appErr.Status(), gin.H{"error": appErr.Message})
+		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return
 	}
 
@@ -67,12 +65,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// ---- Login with JWT ----
 	user, token, err := h.authService.Login(c.Request.Context(), input.Email, input.Username, input.Password)
 	if err != nil {
-		appErr := err.(*apperrors.Error)
-		c.JSON(appErr.Status(), gin.H{"error": appErr.Message})
+		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return
 	}
+	// ---- [END] Login with JWT ----
 
 	c.JSON(http.StatusOK, gin.H{
 		"user":  dto.NewUserResponse(user),

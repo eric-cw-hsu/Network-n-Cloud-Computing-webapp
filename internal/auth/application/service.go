@@ -5,11 +5,12 @@ import (
 	"go-template/internal/auth/domain"
 	"go-template/internal/auth/domain/jwt"
 	"go-template/internal/shared/infrastructure/logger"
+	"go-template/pkg/apperrors"
 )
 
 type AuthApplicationService interface {
-	Register(ctx context.Context, email, username, password string) (*domain.AuthUser, error)
-	Login(ctx context.Context, email, username, password string) (*domain.AuthUser, string, error)
+	Register(ctx context.Context, email, username, password string) (*domain.AuthUser, *apperrors.Error)
+	Login(ctx context.Context, email, username, password string) (*domain.AuthUser, string, *apperrors.Error)
 }
 
 type authApplicationService struct {
@@ -30,36 +31,51 @@ func NewAuthApplicationService(
 	}
 }
 
-func (s *authApplicationService) Register(ctx context.Context, email, username, password string) (*domain.AuthUser, error) {
+func (s *authApplicationService) Register(ctx context.Context, email, username, password string) (*domain.AuthUser, *apperrors.Error) {
 	// 1. check if user already exists
 	exists, err := s.authService.CheckUserExists(ctx, email, username)
 	if err != nil {
-		return nil, err
+		s.logger.Error("Failed to check if user exists", err)
+		return &domain.AuthUser{}, apperrors.NewInternal()
 	}
 
 	if exists {
-		return nil, domain.ErrUserAlreadyExists
+		s.logger.Error("User already exists", nil)
+		return &domain.AuthUser{}, apperrors.NewConflict("user already exists")
 	}
 
 	// 2. create user
-	return s.authService.CreateUser(ctx, email, username, password)
+	authUser, err := s.authService.CreateUser(ctx, email, username, password)
+	if err != nil {
+		s.logger.Error("Failed to create user", err)
+		return &domain.AuthUser{}, apperrors.NewInternal()
+	}
+
+	return authUser, nil
 }
 
-func (s *authApplicationService) Login(ctx context.Context, email, username, password string) (*domain.AuthUser, string, error) {
+func (s *authApplicationService) Login(ctx context.Context, email, username, password string) (*domain.AuthUser, string, *apperrors.Error) {
+	return s.loginWithJWT(ctx, email, username, password)
+}
+
+func (s *authApplicationService) loginWithJWT(ctx context.Context, email, username, password string) (*domain.AuthUser, string, *apperrors.Error) {
 	// 1. check username, email, password in the database
 	user, err := s.authService.AuthenticateUser(ctx, email, username, password)
 	if err != nil {
-		return nil, "", err
+		s.logger.Error("Failed to authenticate user", err)
+		return nil, "", apperrors.NewAuthorization("invalid credentials")
 	}
+
+	authUserInfo := domain.NewAuthUserInfo(user.ID, user.Email, user.Username, user.Role)
 
 	// 2. generate jwt token
-	jwtUserInfo := jwt.NewJWTUserInfo(user.ID, user.Email, user.Username, user.Role)
-
-	token, err := s.jwtService.GenerateToken(jwtUserInfo)
+	token, err := s.jwtService.GenerateToken(authUserInfo)
 	if err != nil {
-		return nil, "", err
+		s.logger.Error("Failed to generate token", err)
+		return nil, "", apperrors.NewInternal()
 	}
 
+	// 3. update last login
 	user.UpdateLastLogin()
 
 	return user, token, nil

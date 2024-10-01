@@ -67,7 +67,7 @@ func (s *authService) AuthenticateUser(ctx context.Context, email, username, pas
 // CheckUserExists checks if a user with the given email or username already exists in the database
 func (s *authService) CheckUserExists(ctx context.Context, email, username string) (bool, error) {
 	user, err := s.repository.FindUserByEmail(ctx, email)
-	if err != nil {
+	if err != nil && err != ErrUserNotFound {
 		return false, err
 	}
 
@@ -76,7 +76,7 @@ func (s *authService) CheckUserExists(ctx context.Context, email, username strin
 	}
 
 	user, err = s.repository.FindUserByUsername(ctx, username)
-	if err != nil {
+	if err != nil && err != ErrUserNotFound {
 		return false, err
 	}
 

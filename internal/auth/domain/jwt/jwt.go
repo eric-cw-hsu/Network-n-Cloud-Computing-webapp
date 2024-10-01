@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"go-template/pkg/apperrors"
+	"go-template/internal/auth/domain"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -17,30 +17,29 @@ func NewJWTService(jwtConfig *JWTConfig) *JWTService {
 	}
 }
 
-func (service *JWTService) Authenticate(tokenString string) (*JWTUserInfo, error) {
+func (service *JWTService) Authenticate(tokenString string) (*domain.AuthUserInfo, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(service.jwtConfig.JWTSecret), nil
 	})
 
 	if err != nil || !token.Valid {
-		return &JWTUserInfo{}, err
+		return &domain.AuthUserInfo{}, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return &JWTUserInfo{}, apperrors.NewAuthorization("invalid token claims")
+		return &domain.AuthUserInfo{}, err
 	}
 
-	userInfo, err := FromClaims(claims)
+	userInfo, err := domain.FromClaims(claims)
 	if err != nil {
-		return &JWTUserInfo{}, apperrors.NewAuthorization("failed to parse claims")
+		return &domain.AuthUserInfo{}, err
 	}
 
 	return userInfo, nil
-
 }
 
-func (service *JWTService) GenerateToken(userInfo JWTUserInfo) (string, error) {
+func (service *JWTService) GenerateToken(userInfo domain.AuthUserInfo) (string, error) {
 	claims := userInfo.GenerateClaims()
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(service.jwtConfig.TokenExpiration)).Unix()
 
@@ -48,7 +47,7 @@ func (service *JWTService) GenerateToken(userInfo JWTUserInfo) (string, error) {
 
 	signedToken, err := token.SignedString([]byte(service.jwtConfig.JWTSecret))
 	if err != nil {
-		return "", apperrors.NewAuthorization("could not sign token")
+		return "", err
 	}
 
 	return signedToken, nil
