@@ -8,18 +8,14 @@ import (
 )
 
 type AuthUserInfo struct {
-	ID       int64
-	Email    string
-	Username string
-	Role     string
+	ID    int64
+	Email string
 }
 
 func (authUserInfo AuthUserInfo) GenerateClaims() jwt.MapClaims {
 	return jwt.MapClaims{
-		"id":       authUserInfo.ID,
-		"email":    authUserInfo.Email,
-		"username": authUserInfo.Username,
-		"role":     authUserInfo.Role,
+		"id":    authUserInfo.ID,
+		"email": authUserInfo.Email,
 	}
 }
 
@@ -44,20 +40,14 @@ func FromClaims(claims jwt.MapClaims) (*AuthUserInfo, error) {
 	}
 
 	return &AuthUserInfo{
-		ID:       int64(id),
-		Email:    claims["email"].(string),
-		Username: claims["username"].(string),
-		Role:     claims["role"].(string),
+		ID:    int64(id),
+		Email: claims["email"].(string),
 	}, nil
 }
 
-func NewAuthUserInfo(
-	id int64, email string, username string, role string,
-) AuthUserInfo {
+func NewAuthUserInfo(id int64, email string) AuthUserInfo {
 	return AuthUserInfo{
-		ID:       id,
-		Email:    email,
-		Username: username,
-		Role:     role,
+		ID:    id,
+		Email: email,
 	}
 }

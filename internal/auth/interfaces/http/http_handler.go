@@ -19,9 +19,10 @@ func NewAuthHandler(authService application.AuthApplicationService) *AuthHandler
 }
 
 type RegisterInput struct {
-	Email    string `json:"email" example:"user@example.com"`
-	Username string `json:"username" example:"johndoe"`
-	Password string `json:"password" example:"secretpassword"`
+	Email     string `json:"email" example:"user@example.com"`
+	FirstName string `json:"first_name" example:"John"`
+	LastName  string `json:"last_name" example:"Doe"`
+	Password  string `json:"password" example:"secretpassword"`
 }
 
 // @Summary Register a new user
@@ -40,7 +41,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.Register(c.Request.Context(), input.Email, input.Username, input.Password)
+	user, err := h.authService.Register(c.Request.Context(), input.Email, input.FirstName, input.LastName, input.Password)
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return
@@ -66,7 +67,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// ---- Login with JWT ----
-	user, token, err := h.authService.Login(c.Request.Context(), input.Email, input.Username, input.Password)
+	user, token, err := h.authService.Login(c.Request.Context(), input.Email, input.Password)
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return

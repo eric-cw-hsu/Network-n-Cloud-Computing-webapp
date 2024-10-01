@@ -7,9 +7,9 @@ import (
 )
 
 type AuthService interface {
-	CreateUser(ctx context.Context, email, username, password string) (*AuthUser, error)
-	AuthenticateUser(ctx context.Context, email, username, password string) (*AuthUser, error)
-	CheckUserExists(ctx context.Context, email, username string) (bool, error)
+	CreateUser(ctx context.Context, email, firstName, lastName, password string) (*AuthUser, error)
+	AuthenticateUser(ctx context.Context, email, password string) (*AuthUser, error)
+	CheckUserExists(ctx context.Context, email string) (bool, error)
 }
 
 type authService struct {
@@ -21,8 +21,8 @@ func NewAuthService(repo AuthRepository, logger logger.Logger) AuthService {
 	return &authService{repository: repo, logger: logger}
 }
 
-func (s *authService) CreateUser(ctx context.Context, email, username, password string) (*AuthUser, error) {
-	user, err := NewAuthUser(email, username, password)
+func (s *authService) CreateUser(ctx context.Context, email, firstName, lastName, password string) (*AuthUser, error) {
+	user, err := NewAuthUser(email, firstName, lastName, password)
 	if err != nil {
 		return nil, err
 	}
@@ -42,16 +42,14 @@ func (s *authService) CreateUser(ctx context.Context, email, username, password 
 	return user, nil
 }
 
-func (s *authService) AuthenticateUser(ctx context.Context, email, username, password string) (*AuthUser, error) {
+func (s *authService) AuthenticateUser(ctx context.Context, email, password string) (*AuthUser, error) {
 	var user *AuthUser
 	var err error
 
 	if email != "" {
 		user, err = s.repository.FindUserByEmail(ctx, email)
-	} else if username != "" {
-		user, err = s.repository.FindUserByUsername(ctx, username)
 	} else {
-		return nil, apperrors.NewUnprocessableEntity("either email or username must be provided")
+		return nil, apperrors.NewUnprocessableEntity("email must be provided")
 	}
 	if err != nil {
 		return nil, apperrors.NewInternal()
@@ -65,17 +63,8 @@ func (s *authService) AuthenticateUser(ctx context.Context, email, username, pas
 }
 
 // CheckUserExists checks if a user with the given email or username already exists in the database
-func (s *authService) CheckUserExists(ctx context.Context, email, username string) (bool, error) {
+func (s *authService) CheckUserExists(ctx context.Context, email string) (bool, error) {
 	user, err := s.repository.FindUserByEmail(ctx, email)
-	if err != nil && err != ErrUserNotFound {
-		return false, err
-	}
-
-	if user != nil {
-		return true, nil
-	}
-
-	user, err = s.repository.FindUserByUsername(ctx, username)
 	if err != nil && err != ErrUserNotFound {
 		return false, err
 	}

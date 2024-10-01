@@ -8,10 +8,9 @@ import (
 type AuthUser struct {
 	ID           int64
 	Email        string
-	Username     string
+	FirstName    string
+	LastName     string
 	PasswordHash string
-	Role         string
-	LastLoginAt  time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -23,9 +22,16 @@ var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
-func NewAuthUser(email string, username string, password string) (*AuthUser, error) {
-	if email == "" || username == "" {
-		return &AuthUser{}, errors.New("email and username cannot be empty")
+func NewAuthUser(
+	email string, firstName string,
+	lastName string, password string,
+) (*AuthUser, error) {
+	if email == "" {
+		return &AuthUser{}, errors.New("email cannot be empty")
+	}
+
+	if firstName == "" || lastName == "" {
+		return &AuthUser{}, errors.New("first name and last name cannot be empty")
 	}
 
 	if password == "" {
@@ -39,15 +45,14 @@ func NewAuthUser(email string, username string, password string) (*AuthUser, err
 
 	return &AuthUser{
 		Email:        email,
-		Username:     username,
+		FirstName:    firstName,
+		LastName:     lastName,
 		PasswordHash: string(hashedPassword),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
-		LastLoginAt:  time.Now(),
 	}, nil
 }
 
 func (u *AuthUser) UpdateLastLogin() {
-	u.LastLoginAt = time.Now()
 	u.UpdatedAt = time.Now()
 }
