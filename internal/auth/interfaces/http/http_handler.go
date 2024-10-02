@@ -1,6 +1,8 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
 	"go-template/internal/auth/application"
 	"go-template/internal/auth/domain"
 	"go-template/internal/auth/interfaces/dto"
@@ -97,9 +99,23 @@ func (h *AuthHandler) GetUser(c *gin.Context) {
 // @Success 200 {object} dto.UserResponse
 // @Router /v1/user [put]
 func (h *AuthHandler) UpdateUser(c *gin.Context) {
-	var input dto.UpdateUserInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
+	rawBody, parseErr := c.GetRawData()
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": parseErr.Error()})
+		return
+	}
+
+	// check if the input contains invalid data without dto.UpdateUserInput
+	if err := checkFieldsIsValid(rawBody, []string{"email", "first_name", "last_name", "password"}); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var input dto.UpdateUserInput
+	if err := json.Unmarshal(rawBody, &input); err != nil {
+
+		fmt.Println(input)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
@@ -112,4 +128,29 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.NewUserResponse(updatedUser))
+}
+
+func checkFieldsIsValid(rawBody []byte, expectedFields []string) error {
+	var data map[string]interface{}
+	if err := json.Unmarshal(rawBody, &data); err != nil {
+		return err
+	}
+
+	// Check for extra fields
+	for key := range data {
+		if !contains(expectedFields, key) {
+			return fmt.Errorf("Extra field: %s", key)
+		}
+	}
+
+	return nil
+}
+
+func contains(slice []string, item string) bool {
+	for _, a := range slice {
+		if a == item {
+			return true
+		}
+	}
+	return false
 }
