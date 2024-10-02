@@ -74,6 +74,7 @@ func (m *Module) RegisterRoutes(router *gin.Engine) {
 		authenticated.Use(middleware.BasicAuthMiddleware(m.basicService))
 		{
 			authenticated.GET("/user", m.handler.GetUser)
+			authenticated.PUT("/user", m.handler.UpdateUser)
 		}
 	}
 }

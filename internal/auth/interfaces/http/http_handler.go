@@ -86,3 +86,30 @@ func (h *AuthHandler) GetUser(c *gin.Context) {
 	user, _ := c.Get("user")
 	c.JSON(http.StatusOK, dto.NewUserResponse(user.(*domain.AuthUser)))
 }
+
+// @Summary Update user profile
+// @Description Update user profile
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param input body UpdateUserInput true "User update details"
+// @Success 200 {object} dto.UserResponse
+// @Router /v1/user [put]
+func (h *AuthHandler) UpdateUser(c *gin.Context) {
+	var input dto.UpdateUserInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, _ := c.Get("user")
+	updatedUser, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
+	if err != nil {
+		c.JSON(err.Status(), gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.NewUserResponse(updatedUser))
+}

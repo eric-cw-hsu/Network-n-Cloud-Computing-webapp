@@ -10,6 +10,7 @@ type AuthService interface {
 	CreateUser(ctx context.Context, email, firstName, lastName, password string) (*AuthUser, error)
 	AuthenticateUser(ctx context.Context, email, password string) (*AuthUser, error)
 	CheckUserExists(ctx context.Context, email string) (bool, error)
+	UpdateUser(ctx context.Context, user *AuthUser) error
 }
 
 type authService struct {
@@ -74,4 +75,8 @@ func (s *authService) CheckUserExists(ctx context.Context, email string) (bool, 
 	}
 
 	return false, nil
+}
+
+func (s *authService) UpdateUser(ctx context.Context, user *AuthUser) error {
+	return s.repository.Update(ctx, user)
 }
