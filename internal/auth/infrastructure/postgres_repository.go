@@ -30,12 +30,12 @@ func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUs
 }
 
 func (r *postgresAuthRepository) FindUserByEmail(ctx context.Context, email string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, first_name, last_name, password FROM users WHERE email = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE email = $1`
 	return r.findUser(ctx, query, email)
 }
 
 func (r *postgresAuthRepository) FindUserByUsername(ctx context.Context, username string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, first_name, last_name, password FROM users WHERE username = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE username = $1`
 	return r.findUser(ctx, query, username)
 }
 
@@ -47,6 +47,8 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 		&user.FirstName,
 		&user.LastName,
 		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

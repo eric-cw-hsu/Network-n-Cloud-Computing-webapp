@@ -2,6 +2,7 @@ package http
 
 import (
 	"go-template/internal/auth/application"
+	"go-template/internal/auth/domain"
 	"go-template/internal/auth/interfaces/dto"
 	"net/http"
 
@@ -25,7 +26,7 @@ func NewAuthHandler(authService application.AuthApplicationService) *AuthHandler
 // @Produce json
 // @Param input body RegisterInput true "User registration details"
 // @Success 201 {object} dto.UserResponse
-// @Router /api/v1/register [post]
+// @Router /v1/user [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var input dto.RegisterInput
 
@@ -71,4 +72,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"user":  dto.NewUserResponse(user),
 		"token": token,
 	})
+}
+
+// @Summary Get user profile
+// @Description Get user profile
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} dto.UserResponse
+// @Router /v1/user [get]
+func (h *AuthHandler) GetUser(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, dto.NewUserResponse(user.(*domain.AuthUser)))
 }
