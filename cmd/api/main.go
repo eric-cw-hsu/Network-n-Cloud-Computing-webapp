@@ -28,6 +28,8 @@ import (
 func main() {
 	loadAppConfig()
 
+	setServerMode()
+
 	db := initDatabase()
 	defer db.Close()
 
@@ -49,6 +51,14 @@ func main() {
 	)
 
 	serveAndListen(server)
+}
+
+func setServerMode() {
+	if config.App.Environment == "production" || config.App.Environment == "staging" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 }
 
 func loadAppConfig() {
