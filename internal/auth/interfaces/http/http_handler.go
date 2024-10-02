@@ -18,13 +18,6 @@ func NewAuthHandler(authService application.AuthApplicationService) *AuthHandler
 	return &AuthHandler{authService: authService}
 }
 
-type RegisterInput struct {
-	Email     string `json:"email" example:"user@example.com"`
-	FirstName string `json:"first_name" example:"John"`
-	LastName  string `json:"last_name" example:"Doe"`
-	Password  string `json:"password" example:"secretpassword"`
-}
-
 // @Summary Register a new user
 // @Description Create a new user account
 // @Tags auth
@@ -34,10 +27,10 @@ type RegisterInput struct {
 // @Success 201 {object} dto.UserResponse
 // @Router /api/v1/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
-	var input RegisterInput
+	var input dto.RegisterInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -62,7 +55,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var input dto.LoginInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 

@@ -32,8 +32,6 @@ func NewAuthApplicationService(
 }
 
 func (s *authApplicationService) Register(ctx context.Context, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error) {
-	// TODO: validate input
-
 	// 1. check if user already exists
 	exists, err := s.authService.CheckUserExists(ctx, email)
 	if err != nil {
