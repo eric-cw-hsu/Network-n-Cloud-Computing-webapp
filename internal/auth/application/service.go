@@ -42,7 +42,7 @@ func (s *authApplicationService) Register(ctx context.Context, email, firstName,
 
 	if exists {
 		s.logger.Error("User already exists", nil)
-		return &domain.AuthUser{}, apperrors.NewConflict("user already exists")
+		return &domain.AuthUser{}, apperrors.NewBadRequest("user already exists")
 	}
 
 	// 2. create user
