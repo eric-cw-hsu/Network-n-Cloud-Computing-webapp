@@ -4,6 +4,7 @@ import (
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
 	"go-template/internal/shared/interfaces/http"
+	"go-template/internal/shared/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,5 +22,5 @@ func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
 }
 
 func (m *Module) RegisterRoutes(router *gin.Engine) {
-	router.GET("/healthz", m.handler.Healthz)
+	router.GET("/healthz", middleware.EmptyQueryParameterChecker(), m.handler.Healthz)
 }
