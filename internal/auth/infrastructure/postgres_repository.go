@@ -20,8 +20,8 @@ func NewPostgresAuthRepository(db database.BaseDatabase) domain.AuthRepository {
 }
 
 func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUser) error {
-	query := `INSERT INTO users (email, username, password, created_at, updated_at, last_login_at) VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := r.db.ExecContext(ctx, query, user.Email, user.Username, user.PasswordHash, user.CreatedAt, user.UpdatedAt, user.LastLoginAt)
+	query := `INSERT INTO users (email, first_name, last_name, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := r.db.ExecContext(ctx, query, user.Email, user.FirstName, user.LastName, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return apperrors.NewInternal()
 	}
@@ -30,12 +30,12 @@ func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUs
 }
 
 func (r *postgresAuthRepository) FindUserByEmail(ctx context.Context, email string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, username, password, last_login_at FROM users WHERE email = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE email = $1`
 	return r.findUser(ctx, query, email)
 }
 
 func (r *postgresAuthRepository) FindUserByUsername(ctx context.Context, username string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, username, password, last_login_at FROM users WHERE username = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE username = $1`
 	return r.findUser(ctx, query, username)
 }
 
@@ -44,9 +44,11 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 	err := r.db.QueryRowContext(ctx, query, arg).Scan(
 		&user.ID,
 		&user.Email,
-		&user.Username,
+		&user.FirstName,
+		&user.LastName,
 		&user.PasswordHash,
-		&user.LastLoginAt,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -61,15 +63,16 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 func (r *postgresAuthRepository) Update(ctx context.Context, user *domain.AuthUser) error {
 	query := `
 			UPDATE users 
-			SET email = $2, username = $3, password = $4, last_login_at = $5
+			SET email = $2, first_name = $3, last_name = $4,
+			password = $5
 			WHERE id = $1
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		user.ID,
 		user.Email,
-		user.Username,
+		user.FirstName,
+		user.LastName,
 		user.PasswordHash,
-		user.LastLoginAt,
 	)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {

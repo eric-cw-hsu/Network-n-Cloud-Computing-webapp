@@ -32,7 +32,7 @@ func (r *postgresUserRepository) GetByID(ctx context.Context, id string) (*domai
 	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE id = $1`
 	err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 	if err == sql.ErrNoRows {
-		return nil, apperrors.NewNotFound("user", id)
+		return nil, apperrors.NewNotFound("user")
 	}
 	if err != nil {
 		return nil, apperrors.NewInternal()

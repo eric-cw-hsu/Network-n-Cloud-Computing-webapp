@@ -88,10 +88,10 @@ func NewBadRequest(reason string) *Error {
 }
 
 // NewConflict to create an error for 409
-func NewConflict(name string, value string) *Error {
+func NewConflict(message string) *Error {
 	return &Error{
 		Type:    Conflict,
-		Message: fmt.Sprintf("resource: %v with value: %v already exists", name, value),
+		Message: message,
 	}
 }
 
@@ -104,10 +104,10 @@ func NewInternal() *Error {
 }
 
 // NewNotFound to create an error for 404
-func NewNotFound(name string, value string) *Error {
+func NewNotFound(message string) *Error {
 	return &Error{
 		Type:    NotFound,
-		Message: fmt.Sprintf("resource: %v with value: %v not found", name, value),
+		Message: message,
 	}
 }
 
