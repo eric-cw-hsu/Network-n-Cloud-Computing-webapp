@@ -64,7 +64,7 @@ func (r *postgresAuthRepository) Update(ctx context.Context, user *domain.AuthUs
 	query := `
 			UPDATE users 
 			SET email = $2, first_name = $3, last_name = $4,
-			password = $5
+			password = $5, updated_at = $6
 			WHERE id = $1
 	`
 	_, err := r.db.ExecContext(ctx, query,
@@ -73,6 +73,7 @@ func (r *postgresAuthRepository) Update(ctx context.Context, user *domain.AuthUs
 		user.FirstName,
 		user.LastName,
 		user.PasswordHash,
+		user.UpdatedAt,
 	)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
