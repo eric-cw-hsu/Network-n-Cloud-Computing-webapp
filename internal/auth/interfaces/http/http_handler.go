@@ -121,13 +121,13 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	}
 
 	user, _ := c.Get("user")
-	updatedUser, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
+	_, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.NewUserResponse(updatedUser))
+	c.Status(http.StatusNoContent)
 }
 
 func checkFieldsIsValid(rawBody []byte, expectedFields []string) error {
