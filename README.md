@@ -19,6 +19,13 @@ database:
     password:
     name:
 
+    # testing
+    test_host:
+    test_port:
+    test_username:
+    test_password:
+    test_name:
+
 server:
     port:
 

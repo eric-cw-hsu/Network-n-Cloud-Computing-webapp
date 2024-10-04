@@ -54,3 +54,7 @@ func (s *Server) Start(addr string) error {
 	s.SetupRoutes()
 	return s.router.Run(addr)
 }
+
+func (s *Server) GetRouter() *gin.Engine {
+	return s.router
+}
