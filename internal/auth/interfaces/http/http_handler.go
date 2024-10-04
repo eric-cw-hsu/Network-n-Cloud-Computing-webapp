@@ -1,11 +1,13 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go-template/internal/auth/application"
 	"go-template/internal/auth/domain"
 	"go-template/internal/auth/interfaces/dto"
+	"io"
 	"net/http"
 
 	_ "go-template/docs"
@@ -112,22 +114,22 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var input dto.UpdateUserInput
-	if err := json.Unmarshal(rawBody, &input); err != nil {
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(rawBody))
 
-		fmt.Println(input)
+	var input dto.UpdateUserInput
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, _ := c.Get("user")
-	updatedUser, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
+	_, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.NewUserResponse(updatedUser))
+	c.Status(http.StatusNoContent)
 }
 
 func checkFieldsIsValid(rawBody []byte, expectedFields []string) error {

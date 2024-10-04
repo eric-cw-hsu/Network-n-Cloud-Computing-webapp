@@ -19,7 +19,7 @@ func NewUserResponse(user *domain.AuthUser) *UserResponse {
 		Email:          user.Email,
 		FirstName:      user.FirstName,
 		LastName:       user.LastName,
-		AccountCreated: user.CreatedAt.Format("2006-01-02 15:04:05"),
-		AccountUpdated: user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		AccountCreated: user.CreatedAt.Format("2006-01-02T15:04:05.000Z"),
+		AccountUpdated: user.UpdatedAt.Format("2006-01-02T15:04:05.000Z"),
 	}
 }

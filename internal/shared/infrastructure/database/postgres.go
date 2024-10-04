@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go-template/internal/utils"
 	"log"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -73,8 +73,8 @@ func (db *PostgresDatabase) AutoMigrate() error {
 		return err
 	}
 
-	pwd, _ := os.Getwd()
-	fileURL := fmt.Sprintf("file://%s", filepath.Join(pwd, "migrations"))
+	rootPath, _ := utils.GetProjectRootPath()
+	fileURL := fmt.Sprintf("file://%s", filepath.Join(rootPath, "migrations"))
 
 	fmt.Print("Migrating database...\n")
 	migrateInstance, err := migrate.NewWithDatabaseInstance(fileURL, "postgres", driver)

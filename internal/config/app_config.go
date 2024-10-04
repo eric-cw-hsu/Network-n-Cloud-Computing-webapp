@@ -17,6 +17,13 @@ type DatabaseConfig struct {
 	Username string
 	Password string
 	Name     string
+
+	// test database
+	TestHost     string `mapstructure:"test_host"`
+	TestPort     int    `mapstructure:"test_port"`
+	TestUsername string `mapstructure:"test_username"`
+	TestPassword string `mapstructure:"test_password"`
+	TestName     string `mapstructure:"test_name"`
 }
 
 var App AppConfig

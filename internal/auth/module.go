@@ -73,8 +73,8 @@ func (m *Module) RegisterRoutes(router *gin.Engine) {
 		authenticated := V1.Group("/")
 		authenticated.Use(middleware.BasicAuthMiddleware(m.basicService))
 		{
-			authenticated.GET("/user", m.handler.GetUser)
-			authenticated.PUT("/user", m.handler.UpdateUser)
+			authenticated.GET("/user/self", m.handler.GetUser)
+			authenticated.PUT("/user/self", m.handler.UpdateUser)
 		}
 	}
 }
