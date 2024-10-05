@@ -3,10 +3,12 @@ package domain
 import (
 	"errors"
 	"time"
+
+	"github.com/samborkent/uuidv7"
 )
 
 type AuthUser struct {
-	ID           int64
+	ID           string
 	Email        string
 	FirstName    string
 	LastName     string
@@ -44,6 +46,7 @@ func NewAuthUser(
 	}
 
 	return &AuthUser{
+		ID:           uuidv7.New().String(),
 		Email:        email,
 		FirstName:    firstName,
 		LastName:     lastName,

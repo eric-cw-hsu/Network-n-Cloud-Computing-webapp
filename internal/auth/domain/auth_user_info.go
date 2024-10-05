@@ -8,7 +8,7 @@ import (
 )
 
 type AuthUserInfo struct {
-	ID    int64
+	ID    string
 	Email string
 }
 
@@ -28,7 +28,7 @@ func (authUserInfo *AuthUserInfo) UnmarshalBinary(data []byte) error {
 }
 
 func FromClaims(claims jwt.MapClaims) (*AuthUserInfo, error) {
-	id, ok := claims["id"].(float64)
+	id, ok := claims["id"].(string)
 	if !ok {
 		return nil, errors.New("missing key in claims")
 	}
@@ -40,12 +40,12 @@ func FromClaims(claims jwt.MapClaims) (*AuthUserInfo, error) {
 	}
 
 	return &AuthUserInfo{
-		ID:    int64(id),
+		ID:    id,
 		Email: claims["email"].(string),
 	}, nil
 }
 
-func NewAuthUserInfo(id int64, email string) AuthUserInfo {
+func NewAuthUserInfo(id string, email string) AuthUserInfo {
 	return AuthUserInfo{
 		ID:    id,
 		Email: email,

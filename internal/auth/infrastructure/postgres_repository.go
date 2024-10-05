@@ -20,8 +20,8 @@ func NewPostgresAuthRepository(db database.BaseDatabase) domain.AuthRepository {
 }
 
 func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUser) error {
-	query := `INSERT INTO users (email, first_name, last_name, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := r.db.ExecContext(ctx, query, user.Email, user.FirstName, user.LastName, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
+	query := `INSERT INTO users (id, email, first_name, last_name, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := r.db.ExecContext(ctx, query, user.ID, user.Email, user.FirstName, user.LastName, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return apperrors.NewInternal()
 	}
