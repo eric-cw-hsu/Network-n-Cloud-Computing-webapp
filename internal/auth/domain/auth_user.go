@@ -2,17 +2,17 @@ package domain
 
 import (
 	"errors"
-	"go-template/pkg/apperrors"
 	"time"
+
+	"github.com/samborkent/uuidv7"
 )
 
 type AuthUser struct {
-	ID           int64
+	ID           string
 	Email        string
-	Username     string
+	FirstName    string
+	LastName     string
 	PasswordHash string
-	Role         string
-	LastLoginAt  time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -24,30 +24,53 @@ var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
-func NewAuthUser(email string, username string, password string) (*AuthUser, error) {
-	if email == "" || username == "" {
-		return nil, apperrors.NewBadRequest("email or username cannot be empty for both")
+func NewAuthUser(
+	email string, firstName string,
+	lastName string, password string,
+) (*AuthUser, error) {
+	if email == "" {
+		return &AuthUser{}, errors.New("email cannot be empty")
+	}
+
+	if firstName == "" || lastName == "" {
+		return &AuthUser{}, errors.New("first name and last name cannot be empty")
 	}
 
 	if password == "" {
-		return nil, apperrors.NewBadRequest("password cannot be empty")
+		return &AuthUser{}, errors.New("password cannot be empty")
 	}
 
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return nil, apperrors.NewInternal()
+		return &AuthUser{}, err
 	}
 
 	return &AuthUser{
+		ID:           uuidv7.New().String(),
 		Email:        email,
+		FirstName:    firstName,
+		LastName:     lastName,
 		PasswordHash: string(hashedPassword),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
-		LastLoginAt:  time.Now(),
 	}, nil
 }
 
 func (u *AuthUser) UpdateLastLogin() {
-	u.LastLoginAt = time.Now()
 	u.UpdatedAt = time.Now()
+}
+
+func (u *AuthUser) Update(email, firstName, lastName, password string) error {
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	u.Email = email
+	u.FirstName = firstName
+	u.LastName = lastName
+	u.PasswordHash = hashedPassword
+	u.UpdatedAt = time.Now()
+
+	return nil
 }

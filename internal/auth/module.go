@@ -4,6 +4,7 @@ import (
 	"go-template/internal/auth/application"
 	"go-template/internal/auth/config"
 	"go-template/internal/auth/domain"
+	"go-template/internal/auth/domain/basic"
 	"go-template/internal/auth/domain/jwt"
 	"go-template/internal/auth/infrastructure"
 	"go-template/internal/auth/interfaces/http"
@@ -17,9 +18,10 @@ import (
 )
 
 type Module struct {
-	handler    *http.AuthHandler
-	jwtService *jwt.JWTService
-	authConfig *config.AuthConfig
+	handler      *http.AuthHandler
+	jwtService   *jwt.JWTService
+	basicService *basic.BasicService
+	authConfig   *config.AuthConfig
 }
 
 func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
@@ -36,11 +38,13 @@ func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
 	authDomainService := domain.NewAuthService(authRepo, logger)
 	authAppService := application.NewAuthApplicationService(authDomainService, jwtService, logger)
 	authHandler := http.NewAuthHandler(authAppService)
+	basicService := basic.NewBasicService(authRepo)
 
 	return &Module{
-		handler:    authHandler,
-		jwtService: jwtService,
-		authConfig: authConfig,
+		handler:      authHandler,
+		jwtService:   jwtService,
+		authConfig:   authConfig,
+		basicService: basicService,
 	}
 }
 
@@ -60,9 +64,17 @@ func (m *Module) GetJWTAuthMiddleware() gin.HandlerFunc {
 
 func (m *Module) RegisterRoutes(router *gin.Engine) {
 
-	apiV1 := router.Group("/api/v1")
+	V1 := router.Group("/v1")
 	{
-		apiV1.POST("/register", m.handler.Register)
-		apiV1.POST("/login", m.handler.Login)
+		V1.POST("/user", m.handler.Register)
+		// apiV1.POST("/login", m.handler.Login)
+
+		// the route below protected by basic auth middleware
+		authenticated := V1.Group("/")
+		authenticated.Use(middleware.BasicAuthMiddleware(m.basicService))
+		{
+			authenticated.GET("/user/self", m.handler.GetUser)
+			authenticated.PUT("/user/self", m.handler.UpdateUser)
+		}
 	}
 }
