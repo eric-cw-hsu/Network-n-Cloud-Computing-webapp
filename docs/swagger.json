@@ -42,7 +42,87 @@
                 }
             }
         },
-        "/api/v1/register": {
+        "/healthz": {
+            "get": {
+                "description": "Check if the database is healthy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shared"
+                ],
+                "summary": "Database health check",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v1/user": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-template_internal_auth_interfaces_dto.UserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "User update details",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-template_internal_auth_interfaces_dto.UpdateUserInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-template_internal_auth_interfaces_dto.UserResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new user account",
                 "consumes": [
@@ -62,7 +142,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_auth_interfaces.RegisterInput"
+                            "$ref": "#/definitions/go-template_internal_auth_interfaces_dto.RegisterInput"
                         }
                     }
                 ],
@@ -75,48 +155,15 @@
                     }
                 }
             }
-        },
-        "/api/v1/users/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get user by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Get user by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/go-template_internal_user_interfaces_dto.UserResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
         "go-template_internal_auth_interfaces_dto.LoginInput": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string",
@@ -125,10 +172,6 @@
                 "password": {
                     "type": "string",
                     "example": "secretpassword"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "johndoe"
                 }
             }
         },
@@ -143,57 +186,76 @@
                 }
             }
         },
-        "go-template_internal_auth_interfaces_dto.UserResponse": {
+        "go-template_internal_auth_interfaces_dto.RegisterInput": {
             "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "go-template_internal_user_interfaces_dto.UserResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_auth_interfaces.RegisterInput": {
-            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string",
                     "example": "user@example.com"
                 },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
                 "password": {
                     "type": "string",
                     "example": "secretpassword"
+                }
+            }
+        },
+        "go-template_internal_auth_interfaces_dto.UpdateUserInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 },
-                "username": {
-                    "type": "string",
-                    "example": "johndoe"
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "go-template_internal_auth_interfaces_dto.UserResponse": {
+            "type": "object",
+            "properties": {
+                "account_created": {
+                    "type": "string"
+                },
+                "account_updated": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
                 }
             }
         }
