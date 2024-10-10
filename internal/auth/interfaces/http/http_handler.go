@@ -28,7 +28,7 @@ func NewAuthHandler(authService application.AuthApplicationService) *AuthHandler
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param input body RegisterInput true "User registration details"
+// @Param input body dto.RegisterInput true "User registration details"
 // @Success 201 {object} dto.UserResponse
 // @Router /v1/user [post]
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -97,7 +97,7 @@ func (h *AuthHandler) GetUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param input body UpdateUserInput true "User update details"
+// @Param input body dto.UpdateUserInput true "User update details"
 // @Success 200 {object} dto.UserResponse
 // @Router /v1/user [put]
 func (h *AuthHandler) UpdateUser(c *gin.Context) {
