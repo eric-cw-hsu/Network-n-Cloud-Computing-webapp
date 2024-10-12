@@ -1,0 +1,64 @@
+name: Go
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+    container: golang:1.22.5-bookworm
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory /__w/webapp/webapp
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Create config.yaml file
+        run: |
+          touch config.yaml
+          echo database: >> config.yaml
+          echo "  test_host: postgres" >> config.yaml
+          echo "  test_port: 5432" >> config.yaml
+          echo "  test_username: postgres" >> config.yaml
+          echo "  test_password: postgres" >> config.yaml
+          echo "  test_name: webapp-test-${{ github.sha }}" >> config.yaml
+
+      - name: Install PostgreSQL client
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h postgres; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
+
+      - name: Create database
+        run: |
+          PGPASSWORD=postgres psql -h postgres -U postgres -c "CREATE DATABASE \"webapp-test-${{ github.sha }}\";" -v ON_ERROR_STOP=1
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build project
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...

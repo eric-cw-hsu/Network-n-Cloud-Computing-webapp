@@ -28,6 +28,8 @@ import (
 func main() {
 	loadAppConfig()
 
+	setServerMode()
+
 	db := initDatabase()
 	defer db.Close()
 
@@ -51,6 +53,14 @@ func main() {
 	serveAndListen(server)
 }
 
+func setServerMode() {
+	if config.App.Environment == "production" || config.App.Environment == "staging" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+}
+
 func loadAppConfig() {
 	if err := sharedConfig.Load(&config.App); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -71,11 +81,9 @@ func initDatabase() database.BaseDatabase {
 
 	// comment this block due to the healthz check for assignment
 	// Ref: https://northeastern.instructure.com/courses/192927/assignments/2459523
-	/**
 	if err := postgres.AutoMigrate(); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
-	*/
 
 	return postgres
 }

@@ -8,9 +8,9 @@ definitions:
       password:
         example: secretpassword
         type: string
-      username:
-        example: johndoe
-        type: string
+    required:
+    - email
+    - password
     type: object
   go-template_internal_auth_interfaces_dto.LoginResponse:
     properties:
@@ -19,40 +19,55 @@ definitions:
       user:
         $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UserResponse'
     type: object
-  go-template_internal_auth_interfaces_dto.UserResponse:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      updated_at:
-        type: string
-      username:
-        type: string
-    type: object
-  go-template_internal_user_interfaces_dto.UserResponse:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      updated_at:
-        type: string
-    type: object
-  internal_auth_interfaces.RegisterInput:
+  go-template_internal_auth_interfaces_dto.RegisterInput:
     properties:
       email:
         example: user@example.com
         type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
       password:
         example: secretpassword
         type: string
-      username:
-        example: johndoe
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  go-template_internal_auth_interfaces_dto.UpdateUserInput:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  go-template_internal_auth_interfaces_dto.UserResponse:
+    properties:
+      account_created:
+        type: string
+      account_updated:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
         type: string
     type: object
 info:
@@ -83,7 +98,34 @@ paths:
       summary: Login
       tags:
       - auth
-  /api/v1/register:
+  /healthz:
+    get:
+      description: Check if the database is healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Database health check
+      tags:
+      - shared
+  /v1/user:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UserResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user profile
+      tags:
+      - auth
     post:
       consumes:
       - application/json
@@ -94,7 +136,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_auth_interfaces.RegisterInput'
+          $ref: '#/definitions/go-template_internal_auth_interfaces_dto.RegisterInput'
       produces:
       - application/json
       responses:
@@ -105,29 +147,29 @@ paths:
       summary: Register a new user
       tags:
       - auth
-  /api/v1/users/{id}:
-    get:
+    put:
       consumes:
       - application/json
-      description: Get user by ID
+      description: Update user profile
       parameters:
-      - description: User ID
-        in: path
-        name: id
+      - description: User update details
+        in: body
+        name: input
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UpdateUserInput'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/go-template_internal_user_interfaces_dto.UserResponse'
+            $ref: '#/definitions/go-template_internal_auth_interfaces_dto.UserResponse'
       security:
       - ApiKeyAuth: []
-      summary: Get user by ID
+      summary: Update user profile
       tags:
-      - user
+      - auth
 securityDefinitions:
   ApiKeyAuth:
     description: Authorization token

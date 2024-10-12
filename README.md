@@ -8,9 +8,8 @@ $ go mod tidy
 2. Set up environment variables
    Create a `config.yaml` file in the project root and add the necessary environment variables
 ```yaml
-app:
-    name: 
-    environment:
+name: 
+environment: # set to production or staging when the server is in production
 
 database:
     host:
