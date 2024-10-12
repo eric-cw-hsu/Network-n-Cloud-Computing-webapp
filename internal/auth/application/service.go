@@ -11,7 +11,7 @@ import (
 type AuthApplicationService interface {
 	Register(ctx context.Context, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
 	Login(ctx context.Context, email, password string) (*domain.AuthUser, string, *apperrors.Error)
-	UpdateUser(ctx context.Context, user *domain.AuthUser, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
+	UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
 }
 
 type authApplicationService struct {
@@ -82,23 +82,9 @@ func (s *authApplicationService) loginWithJWT(ctx context.Context, email, passwo
 	return user, token, nil
 }
 
-func (s *authApplicationService) UpdateUser(ctx context.Context, user *domain.AuthUser, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error) {
-	// 1. check if email is already taken
-	if user.Email != email {
-		exists, err := s.authService.CheckUserExists(ctx, email)
-		if err != nil {
-			s.logger.Error("Failed to check if user exists", err)
-			return &domain.AuthUser{}, apperrors.NewInternal()
-		}
-
-		if exists {
-			s.logger.Error("User already exists", nil)
-			return &domain.AuthUser{}, apperrors.NewConflict("user already exists")
-		}
-	}
-
+func (s *authApplicationService) UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error) {
 	// 2. update user
-	err := user.Update(email, firstName, lastName, password)
+	err := user.Update(firstName, lastName, password)
 	if err != nil {
 		s.logger.Error("Failed to update user", err)
 		return &domain.AuthUser{}, apperrors.NewInternal()

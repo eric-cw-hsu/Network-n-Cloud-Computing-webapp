@@ -63,13 +63,12 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 func (r *postgresAuthRepository) Update(ctx context.Context, user *domain.AuthUser) error {
 	query := `
 			UPDATE users 
-			SET email = $2, first_name = $3, last_name = $4,
-			password = $5, updated_at = $6
+			SET first_name = $2, last_name = $3,
+			password = $4, updated_at = $5
 			WHERE id = $1
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		user.ID,
-		user.Email,
 		user.FirstName,
 		user.LastName,
 		user.PasswordHash,

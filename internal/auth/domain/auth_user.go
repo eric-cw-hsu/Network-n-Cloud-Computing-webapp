@@ -60,13 +60,12 @@ func (u *AuthUser) UpdateLastLogin() {
 	u.UpdatedAt = time.Now()
 }
 
-func (u *AuthUser) Update(email, firstName, lastName, password string) error {
+func (u *AuthUser) Update(firstName, lastName, password string) error {
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
 
-	u.Email = email
 	u.FirstName = firstName
 	u.LastName = lastName
 	u.PasswordHash = hashedPassword
