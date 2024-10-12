@@ -109,7 +109,7 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// check if the input contains invalid data without dto.UpdateUserInput
-	if err := checkFieldsIsValid(rawBody, []string{"email", "first_name", "last_name", "password"}); err != nil {
+	if err := checkFieldsIsValid(rawBody, []string{"first_name", "last_name", "password"}); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -123,7 +123,7 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	}
 
 	user, _ := c.Get("user")
-	_, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.Email, input.FirstName, input.LastName, input.Password)
+	_, err := h.authService.UpdateUser(c.Request.Context(), user.(*domain.AuthUser), input.FirstName, input.LastName, input.Password)
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Message})
 		return

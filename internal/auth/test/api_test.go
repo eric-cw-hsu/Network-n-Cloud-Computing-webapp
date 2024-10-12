@@ -130,7 +130,6 @@ func TestAuthAPI(t *testing.T) {
 	})
 
 	t.Run("TestUpdateUser", func(t *testing.T) {
-		newEmail := "test-new@example.com"
 		newFirstName := "Jane"
 		newLastName := "Smith"
 		newPassword := "newpassword"
@@ -138,11 +137,10 @@ func TestAuthAPI(t *testing.T) {
 		// Create a request to pass to our handler
 		req, _ := http.NewRequest("PUT", "/v1/user/self", bytes.NewBuffer([]byte(
 			fmt.Sprintf(`{
-				"email": "%s",
 				"first_name": "%s",
 				"last_name": "%s",
 				"password": "%s"
-			}`, newEmail, newFirstName, newLastName, newPassword),
+			}`, newFirstName, newLastName, newPassword),
 		)))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Basic dGVzdEBleGFtcGxlLmNvbTpwYXNzd29yZA==")
@@ -155,19 +153,17 @@ func TestAuthAPI(t *testing.T) {
 
 		// Check if the user is updated in the database
 		var newPasswordHash string
-		err := database.GetConnection().QueryRow("SELECT password FROM users WHERE email = $1 and first_name = $2 and last_name = $3", newEmail, newFirstName, newLastName).Scan(&newPasswordHash)
+		err := database.GetConnection().QueryRow("SELECT password FROM users WHERE email = $1 and first_name = $2 and last_name = $3", email, newFirstName, newLastName).Scan(&newPasswordHash)
 		assert.NoError(t, err)
 		assert.NotEqual(t, newPassword, newPasswordHash)
 
 		// 422
 		req, _ = http.NewRequest("PUT", "/v1/user/self", bytes.NewBuffer([]byte(`{
-			"email": "test",
-			"first_name": "John",
 			"last_name": "Doe",
 			"password": "password"
 		}`)))
 		req.Header.Set("Content-Type", "application/json")
-		base64Token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", newEmail, newPassword)))
+		base64Token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", email, newPassword)))
 
 		req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64Token))
 		w = httptest.NewRecorder()
@@ -212,11 +208,10 @@ func TestAuthAPI(t *testing.T) {
 			"email": "test@example.com",
 			"first_name": "John",
 			"last_name": "Doe",
-			"password": "password",
-			"extra": "extra"
+			"password": "password"
 		}`)))
 		req.Header.Set("Content-Type", "application/json")
-		base64Token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", newEmail, newPassword)))
+		base64Token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", email, newPassword)))
 		req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64Token))
 		w = httptest.NewRecorder()
 
@@ -224,7 +219,6 @@ func TestAuthAPI(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		email = newEmail
 		firstName = newFirstName
 		lastName = newLastName
 		password = newPassword
