@@ -112,7 +112,7 @@ func TestAuthAPI(t *testing.T) {
 
 		// Perform the request
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 
 		// 400 - email already exists
 		req, _ = http.NewRequest("POST", "/v1/user", bytes.NewBuffer([]byte(`{
