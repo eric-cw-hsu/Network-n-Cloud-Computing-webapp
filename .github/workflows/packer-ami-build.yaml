@@ -1,0 +1,113 @@
+name: Packer-AMI-Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  packer-ami-build:
+    runs-on: ubuntu-latest
+    environment: 
+      name: AWS_DEPLOYMENT
+    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory /__w/webapp/webapp
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.22.5'
+
+      # Integration Test
+      - name: Create config.yaml file
+        run: |
+          touch config.yaml
+          echo database: >> config.yaml
+          echo "  test_host: localhost" >> config.yaml
+          echo "  test_port: 5432" >> config.yaml
+          echo "  test_username: postgres" >> config.yaml
+          echo "  test_password: postgres" >> config.yaml
+          echo "  test_name: webapp-test-${{ github.sha }}" >> config.yaml
+      
+      - name: Install PostgreSQL client
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h localhost; do
+            echo "Waiting for postgres to be ready..."
+            sleep 1
+          done
+
+      - name: Create database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE \"webapp-test-${{ github.sha }}\";" -v ON_ERROR_STOP=1
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Test
+        run: go test -v ./...
+
+
+      # Build Project
+      - name: Build project
+        run: go build -o app ./cmd/api/main.go
+
+
+      # Build AMI
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: latest
+
+      - name: Reset config.yaml file for deployment
+        run: |
+          > config.yaml
+          echo "name: \"Webapp\"" >> config.yaml
+          echo "environment: \"production\"" >> config.yaml
+          echo "" >> config.yaml
+          echo "database:" >> config.yaml
+          echo "  host: localhost" >> config.yaml
+          echo "  port: 5432" >> config.yaml
+          echo "  username: ubuntu" >> config.yaml
+          echo "  password: 1qaz@WSX3edc" >> config.yaml
+          echo "  name: webapp" >> config.yaml
+          echo "" >> config.yaml
+          echo "server:" >> config.yaml
+          echo "  port: 8080" >> config.yaml
+
+      - name: Init Packer
+        run: packer init ./packer
+
+      - name: Install AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build AMI
+        run: packer build ./packer

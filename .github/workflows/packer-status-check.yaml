@@ -1,0 +1,32 @@
+name: Packer-Status-Check
+
+on:
+  pull_request:
+
+jobs:
+  packer-status-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup pre-requisites files
+        run: |
+          touch app
+          touch config.yaml
+
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: latest
+
+      - name: packer init
+        run: packer init ./packer
+
+      - name: packer fmt
+        run: packer fmt ./packer
+
+      - name: packer validate
+        run: packer validate ./packer
