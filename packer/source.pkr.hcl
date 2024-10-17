@@ -23,4 +23,6 @@ source "amazon-ebs" "csye6225-ami" {
     volume_type           = "gp2"
     delete_on_termination = true
   }
+
+  ami_users = var.shared_user_ids
 }
