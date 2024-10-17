@@ -26,7 +26,7 @@ jobs:
         run: packer init ./packer
 
       - name: packer fmt
-        run: packer fmt ./packer
+        run: packer fmt -check -recursive ./packer
 
       - name: packer validate
         run: packer validate ./packer

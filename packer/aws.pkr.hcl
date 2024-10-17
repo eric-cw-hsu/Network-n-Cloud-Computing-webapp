@@ -23,7 +23,7 @@ build {
   }
 
   provisioner "file" {
-    source = "./migrations"
+    source      = "./migrations"
     destination = "/tmp/migrations"
   }
 
@@ -33,7 +33,7 @@ build {
   }
 
   provisioner "file" {
-    source = "./packer/nginx.conf"
+    source      = "./packer/nginx.conf"
     destination = "/tmp/nginx.conf"
   }
 
