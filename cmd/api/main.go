@@ -68,14 +68,20 @@ func loadAppConfig() {
 }
 
 func initDatabase() database.BaseDatabase {
+	sslmode := "require"
+	if config.App.Environment != "production" && config.App.Environment != "staging" {
+		sslmode = "disable"
+	}
+
 	postgres := database.NewPostgresDatabase(
 		fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			"postgres://%s:%s@%s:%d/%s?sslmode=%s",
 			config.App.Database.Username,
 			config.App.Database.Password,
 			config.App.Database.Host,
 			config.App.Database.Port,
 			config.App.Database.Name,
+			sslmode,
 		),
 	)
 
