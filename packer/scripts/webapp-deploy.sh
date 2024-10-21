@@ -15,7 +15,6 @@ sudo ln -s /etc/nginx/sites-available/webapp.conf /etc/nginx/sites-enabled/
 sudo cp /tmp/app /opt/webapp/app
 
 sudo cp /tmp/app.service /etc/systemd/system/app.service
-sudo cp /tmp/config.yaml /opt/webapp/config.yaml
 
 sudo cp -r /tmp/migrations /opt/webapp/migrations
 
