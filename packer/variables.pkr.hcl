@@ -18,3 +18,7 @@ variable "subnet_id" {
   default = "subnet-0d4d366e276bb292a" # us-west-2a
 }
 
+variable "shared_user_ids" {
+  type    = list(string)
+  default = ["761018880006"]
+}
