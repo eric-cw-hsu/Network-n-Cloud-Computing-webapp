@@ -18,11 +18,6 @@ build {
   }
 
   provisioner "file" {
-    source      = "./config.yaml"
-    destination = "/tmp/config.yaml"
-  }
-
-  provisioner "file" {
     source      = "./migrations"
     destination = "/tmp/migrations"
   }
@@ -39,10 +34,6 @@ build {
 
   provisioner "shell" {
     script = "./packer/scripts/os-init.sh"
-  }
-
-  provisioner "shell" {
-    script = "./packer/scripts/database-init.sh"
   }
 
   provisioner "shell" {
