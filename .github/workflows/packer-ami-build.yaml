@@ -83,22 +83,6 @@ jobs:
         with:
           version: latest
 
-      - name: Reset config.yaml file for deployment
-        run: |
-          > config.yaml
-          echo "name: \"Webapp\"" >> config.yaml
-          echo "environment: \"production\"" >> config.yaml
-          echo "" >> config.yaml
-          echo "database:" >> config.yaml
-          echo "  host: localhost" >> config.yaml
-          echo "  port: 5432" >> config.yaml
-          echo "  username: ubuntu" >> config.yaml
-          echo "  password: 1qaz@WSX3edc" >> config.yaml
-          echo "  name: webapp" >> config.yaml
-          echo "" >> config.yaml
-          echo "server:" >> config.yaml
-          echo "  port: 8080" >> config.yaml
-
       - name: Init Packer
         run: packer init ./packer
 
