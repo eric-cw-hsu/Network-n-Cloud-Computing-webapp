@@ -2,10 +2,9 @@ name: Go
 
 on:
   pull_request:
-    branches: ["main"]
 
 jobs:
-  container-job:
+  go-test:
     runs-on: ubuntu-latest
     container: golang:1.22.5-bookworm
 
