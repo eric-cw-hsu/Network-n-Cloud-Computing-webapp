@@ -24,3 +24,5 @@ sudo systemctl enable app
 sudo systemctl enable nginx
 
 sudo chown -R csye6225:csye6225 /opt/webapp
+
+systemctl enable amazon-cloudwatch-agent
