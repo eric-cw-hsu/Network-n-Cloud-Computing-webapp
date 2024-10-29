@@ -8,5 +8,4 @@ export TZ=AMERICA/LOS_ANGELES
 sudo apt update
 sudo apt upgrade -y
 sudo apt install nginx -y
-sudo apt install amazon-cloudwatch-agent -y
 sudo apt clean -y
