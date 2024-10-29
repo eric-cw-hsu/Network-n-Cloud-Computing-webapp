@@ -39,4 +39,8 @@ build {
   provisioner "shell" {
     script = "./packer/scripts/webapp-deploy.sh"
   }
+
+  provisioner "shell" {
+    script = "./packer/scripts/amazon-cloudwatch-agent-setup.sh"
+  }
 }
