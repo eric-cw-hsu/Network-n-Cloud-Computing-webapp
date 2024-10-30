@@ -59,7 +59,17 @@ func (s *userApplicationService) DeleteProfilePic(ctx context.Context, user *dom
 	// Get the profile pic
 	profilePic, err := s.userRepository.GetProfilePic(ctx, user)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			s.logger.Error("User not found", err)
+			return apperrors.NewNotFound("user not found")
+		}
+
 		s.logger.Error("Failed to get profile pic", err)
+		return apperrors.NewInternal()
+	}
+
+	if profilePic.Filename == "" {
+		s.logger.Error("profile pic not found", err)
 		return apperrors.NewNotFound("profile pic not found")
 	}
 
