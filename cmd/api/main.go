@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"go-template/internal/auth"
+	"go-template/internal/s3"
 	"go-template/internal/shared"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
 	"go-template/internal/shared/interfaces/http"
 	"go-template/internal/shared/middleware"
+	"go-template/internal/user"
 	"log"
 
 	_ "go-template/docs"
@@ -35,7 +37,10 @@ func main() {
 
 	logger := logger.NewLogrusLogger("./logs")
 
+	s3Module := s3.NewModule(logger)
+
 	authModule := auth.NewModule(db, logger)
+	userModule := user.NewModule(db, logger, authModule.GetBasicService(), s3Module)
 
 	server := http.NewServer()
 
@@ -48,6 +53,7 @@ func main() {
 	server.AddModules(
 		shared.NewModule(db, logger),
 		authModule,
+		userModule,
 	)
 
 	serveAndListen(server)

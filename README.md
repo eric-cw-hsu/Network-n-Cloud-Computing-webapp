@@ -28,12 +28,9 @@ database:
 server:
     port:
 
-auth:
-    jwt_secret:
-    token_expiration: # in second
-
-user:
-    password_min_length:
+aws:
+    region:
+    bucket_name:
 ```
 3. Run the application
    ```sh
