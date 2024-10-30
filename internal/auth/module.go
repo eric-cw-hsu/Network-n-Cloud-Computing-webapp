@@ -62,6 +62,10 @@ func (m *Module) GetJWTAuthMiddleware() gin.HandlerFunc {
 	return middleware.JWTAuthMiddleware(m.jwtService)
 }
 
+func (m *Module) GetBasicService() *basic.BasicService {
+	return m.basicService
+}
+
 func (m *Module) RegisterRoutes(router *gin.Engine) {
 
 	V1 := router.Group("/v1")
