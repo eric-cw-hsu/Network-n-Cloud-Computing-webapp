@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-template/internal/auth"
+	"go-template/internal/cloudwatch"
 	"go-template/internal/s3"
 	"go-template/internal/shared"
 	"go-template/internal/shared/infrastructure/database"
@@ -32,12 +33,13 @@ func main() {
 
 	setServerMode()
 
-	db := initDatabase()
+	logger := logger.NewLogrusLogger("./logs")
+	cloudWatchModule := cloudwatch.NewModule(logger)
+
+	db := initDatabase(cloudWatchModule)
 	defer db.Close()
 
-	logger := logger.NewLogrusLogger("./logs")
-
-	s3Module := s3.NewModule(logger)
+	s3Module := s3.NewModule(logger, cloudWatchModule)
 
 	authModule := auth.NewModule(db, logger)
 	userModule := user.NewModule(db, logger, authModule.GetBasicService(), s3Module)
@@ -45,7 +47,7 @@ func main() {
 	server := http.NewServer()
 
 	server.AddMiddlewares(
-		middleware.NewRequestLoggerMiddleware(logger).Handler(),
+		middleware.NewRequestLoggerMiddleware(logger, cloudWatchModule).Handler(),
 		middleware.RemovePayloadForMethodNotAllowed(),
 		gin.Recovery(),
 	)
@@ -73,7 +75,7 @@ func loadAppConfig() {
 	}
 }
 
-func initDatabase() database.BaseDatabase {
+func initDatabase(cloudWatchModule cloudwatch.CloudWatchModule) database.BaseDatabase {
 	sslmode := "require"
 	if config.App.Environment != "production" && config.App.Environment != "staging" {
 		sslmode = "disable"
@@ -89,6 +91,7 @@ func initDatabase() database.BaseDatabase {
 			config.App.Database.Name,
 			sslmode,
 		),
+		cloudWatchModule,
 	)
 
 	// comment this block due to the healthz check for assignment

@@ -5,11 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go-template/internal/cloudwatch"
+	"go-template/internal/config"
 	"go-template/internal/utils"
 	"log"
 	"path/filepath"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -18,16 +21,17 @@ import (
 )
 
 type PostgresDatabase struct {
-	conn *sql.DB
+	conn             *sql.DB
+	cloudWatchModule cloudwatch.CloudWatchModule
 }
 
-func NewPostgresDatabase(databaseSourceString string) BaseDatabase {
+func NewPostgresDatabase(databaseSourceString string, cloudWatchModule cloudwatch.CloudWatchModule) BaseDatabase {
 	conn, err := sql.Open("postgres", databaseSourceString)
 	if err != nil {
 		log.Fatalf("Failed to created database instance: %v", err)
 	}
 
-	return &PostgresDatabase{conn}
+	return &PostgresDatabase{conn, cloudWatchModule}
 }
 
 func (db *PostgresDatabase) CheckDBConnection() error {
@@ -60,11 +64,23 @@ func (db *PostgresDatabase) Close() {
 }
 
 func (db *PostgresDatabase) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	return db.conn.ExecContext(ctx, query, args...)
+	start := time.Now()
+
+	result, err := db.conn.ExecContext(ctx, query, args...)
+
+	defer db.logLatencyMetric(ctx, query, float64(time.Since(start).Milliseconds()))
+
+	return result, err
 }
 
 func (db *PostgresDatabase) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	return db.conn.QueryRowContext(ctx, query, args...)
+	start := time.Now()
+
+	row := db.conn.QueryRowContext(ctx, query, args...)
+
+	defer db.logLatencyMetric(ctx, query, float64(time.Since(start).Milliseconds()))
+
+	return row
 }
 
 func (db *PostgresDatabase) AutoMigrate() error {
@@ -88,4 +104,13 @@ func (db *PostgresDatabase) AutoMigrate() error {
 	}
 
 	return nil
+}
+
+func (db *PostgresDatabase) logLatencyMetric(ctx context.Context, query string, latency float64) {
+	db.cloudWatchModule.PublishMetric(
+		config.App.Name+"/Postgres",
+		query,
+		latency,
+		types.StandardUnitMilliseconds,
+	)
 }

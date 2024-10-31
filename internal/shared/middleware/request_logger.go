@@ -2,18 +2,25 @@ package middleware
 
 import (
 	"fmt"
+	"go-template/internal/cloudwatch"
+	"go-template/internal/config"
 	"go-template/internal/shared/infrastructure/logger"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/gin-gonic/gin"
 )
 
 type RequestLoggerMiddleware struct {
-	logger logger.Logger
+	logger           logger.Logger
+	cloudWatchModule cloudwatch.CloudWatchModule
 }
 
-func NewRequestLoggerMiddleware(logger logger.Logger) *RequestLoggerMiddleware {
-	return &RequestLoggerMiddleware{logger: logger}
+func NewRequestLoggerMiddleware(logger logger.Logger, cloudWatchModule cloudwatch.CloudWatchModule) *RequestLoggerMiddleware {
+	return &RequestLoggerMiddleware{
+		logger:           logger,
+		cloudWatchModule: cloudWatchModule,
+	}
 }
 
 // Handler logs the request
@@ -35,5 +42,21 @@ func (m *RequestLoggerMiddleware) Handler() gin.HandlerFunc {
 			c.Writer.Status(),
 			c.Errors.String(),
 		))
+
+		apiName := fmt.Sprintf("[%s]%s", c.Request.Method, c.Request.URL.Path)
+
+		m.cloudWatchModule.PublishMetric(
+			config.App.Name+"/API",
+			apiName+"_latency",
+			float64(latency.Milliseconds()),
+			types.StandardUnitMilliseconds,
+		)
+
+		m.cloudWatchModule.PublishMetric(
+			config.App.Name+"/API",
+			apiName+"_count",
+			1,
+			types.StandardUnitCount,
+		)
 	}
 }
