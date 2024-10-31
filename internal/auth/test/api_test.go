@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -32,6 +33,14 @@ func (m *MockLogger) Error(args ...interface{}) {}
 func (m *MockLogger) Debug(args ...interface{}) {}
 func (m *MockLogger) Warn(args ...interface{})  {}
 
+// Mock cloudwatch module
+type MockCloudWatchModule struct {
+	mock.Mock
+}
+
+func (m *MockCloudWatchModule) PublishMetric(namespace, metricName string, value float64, unit types.StandardUnit) {
+}
+
 func TestAuthAPI(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -42,7 +51,8 @@ func TestAuthAPI(t *testing.T) {
 	}
 
 	mockLogger := new(MockLogger)
-	database := initDatabase()
+	mockCloudWatchModule := new(MockCloudWatchModule)
+	database := initDatabase(mockCloudWatchModule)
 	defer database.Close()
 
 	// Setup server
@@ -253,7 +263,7 @@ func TestAuthAPI(t *testing.T) {
 	})
 }
 
-func initDatabase() database.BaseDatabase {
+func initDatabase(mockCloudWatchModule *MockCloudWatchModule) database.BaseDatabase {
 	postgres := database.NewPostgresDatabase(
 		fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
@@ -263,6 +273,7 @@ func initDatabase() database.BaseDatabase {
 			config.App.Database.TestPort,
 			config.App.Database.TestName,
 		),
+		mockCloudWatchModule,
 	)
 
 	resetDatabase(postgres)
@@ -279,10 +290,9 @@ func waitForServerStart() error {
 	for i := 0; i < maxAttempts; i++ {
 		_, err := http.Get("http://localhost:3000/v1/user")
 		if err == nil {
-			return nil // 伺服器已啟動
+			return nil
 		}
 
-		// 等待 100 毫秒後重試
 		time.Sleep(100 * time.Millisecond)
 	}
 	return fmt.Errorf("server not started after %d attempts", maxAttempts)
