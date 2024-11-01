@@ -39,13 +39,12 @@ func (s *userApplicationService) UploadProfilePic(ctx context.Context, user *dom
 		return nil, apperrors.NewInternal()
 	}
 
-	err = s.userService.UploadProfilePic(user.ID, profilePicFile.Filename, fileBytes)
+	profilePic, err := s.userService.UploadProfilePic(user.ID, profilePicFile.Filename, fileBytes)
 	if err != nil {
 		s.logger.Error("Failed to upload profile pic", err)
 		return nil, apperrors.NewInternal()
 	}
 
-	profilePic := domain.NewProfilePic(profilePicFile.Filename)
 	err = s.userRepository.SaveProfilePic(ctx, user, profilePic)
 	if err != nil {
 		s.logger.Error("Failed to save profile pic", err)
@@ -60,17 +59,12 @@ func (s *userApplicationService) DeleteProfilePic(ctx context.Context, user *dom
 	profilePic, err := s.userRepository.GetProfilePic(ctx, user)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			s.logger.Error("User not found", err)
-			return apperrors.NewNotFound("user not found")
+			s.logger.Error("profile pic not found", err)
+			return apperrors.NewNotFound("profile pic not found")
 		}
 
 		s.logger.Error("Failed to get profile pic", err)
 		return apperrors.NewInternal()
-	}
-
-	if profilePic.Filename == "" {
-		s.logger.Error("profile pic not found", err)
-		return apperrors.NewNotFound("profile pic not found")
 	}
 
 	// Delete the profile pic from S3
@@ -108,17 +102,12 @@ func (s *userApplicationService) GetProfilePic(ctx context.Context, user *domain
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			s.logger.Error("User not found", err)
-			return nil, apperrors.NewNotFound("user not found")
+			s.logger.Error("profile pic not found", err)
+			return nil, apperrors.NewNotFound("profile pic not found")
 		}
 
 		s.logger.Error("Failed to get profile pic", err)
 		return nil, apperrors.NewInternal()
-	}
-
-	if profilePic.Filename == "" {
-		s.logger.Error("profile pic not found", err)
-		return nil, apperrors.NewNotFound("profile pic not found")
 	}
 
 	return profilePic, nil

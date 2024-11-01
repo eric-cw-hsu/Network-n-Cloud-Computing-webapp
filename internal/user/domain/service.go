@@ -7,7 +7,7 @@ import (
 
 type UserService interface {
 	ParseProfilePic(profilePic *multipart.FileHeader) ([]byte, error)
-	UploadProfilePic(userId, filename string, fileBytes []byte) error
+	UploadProfilePic(userId, filename string, fileBytes []byte) (*ProfilePic, error)
 	DeleteProfilePic(key string) error
 	GetProfilePic(key string) ([]byte, error)
 }
@@ -38,9 +38,21 @@ func (s *userService) ParseProfilePic(profilePic *multipart.FileHeader) ([]byte,
 	return fileBytes, nil
 }
 
-func (s *userService) UploadProfilePic(userId, filename string, fileBytes []byte) error {
+func (s *userService) UploadProfilePic(userId, filename string, fileBytes []byte) (*ProfilePic, error) {
 	uniqueKey := userId + "/" + filename
-	return s.s3Module.UploadFile(uniqueKey, fileBytes)
+	uploadResult, err := s.s3Module.UploadFile(uniqueKey, fileBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewProfilePic(
+		filename,
+		uploadResult.Location,
+		*uploadResult.Key,
+		*uploadResult.ETag,
+		uploadResult.ServerSideEncryption,
+		*uploadResult.SSEKMSKeyId,
+	), nil
 }
 
 func (s *userService) DeleteProfilePic(key string) error {
