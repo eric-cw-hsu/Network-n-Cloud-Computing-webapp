@@ -22,3 +22,18 @@ variable "shared_user_ids" {
   type    = list(string)
   default = ["761018880006"]
 }
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "instance_volume_size" {
+  type    = number
+  default = 8
+}
+
+variable "instance_volume_type" {
+  type    = string
+  default = "gp2"
+}
