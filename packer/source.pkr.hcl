@@ -19,7 +19,7 @@ source "amazon-ebs" "csye6225-ami" {
 
   launch_block_device_mappings {
     device_name           = "/dev/sda1"
-    volume_size           = ${var.instance_volume_size}
+    volume_size           = var.instance_volume_size
     volume_type           = "${var.instance_volume_type}"
     delete_on_termination = true
   }
