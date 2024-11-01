@@ -19,7 +19,7 @@ import (
 
 type S3Module interface {
 	GetFile(key string) ([]byte, error)
-	UploadFile(key string, file []byte) error
+	UploadFile(key string, file []byte) (*manager.UploadOutput, error)
 	DeleteFile(key string) error
 	GetBucketName() string
 }
@@ -81,11 +81,11 @@ func (m *module) GetFile(key string) ([]byte, error) {
 	return buffer.Bytes()[:numBytes], nil
 }
 
-func (m *module) UploadFile(key string, file []byte) error {
+func (m *module) UploadFile(key string, file []byte) (*manager.UploadOutput, error) {
 	startTime := time.Now()
 
 	uploader := manager.NewUploader(m.client)
-	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	result, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(m.s3Config.AWS.BucketName),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(file),
@@ -93,7 +93,7 @@ func (m *module) UploadFile(key string, file []byte) error {
 
 	defer m.logLatencyMetric("upload_file", float64(time.Since(startTime).Milliseconds()))
 
-	return err
+	return result, err
 }
 
 func (m *module) DeleteFile(key string) error {
