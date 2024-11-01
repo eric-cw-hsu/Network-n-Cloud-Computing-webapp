@@ -16,6 +16,6 @@ func NewPicResponse(user *domain.User, profilePic *domain.ProfilePic, bucketName
 		UserID:     user.ID,
 		FileName:   profilePic.Filename,
 		URL:        bucketName + "/" + user.ID + "/" + profilePic.Filename,
-		UploadDate: profilePic.UploadedAt.Time.Format("2006-01-02"),
+		UploadDate: profilePic.UploadedAt.Format("2006-01-02"),
 	}
 }

@@ -1,3 +1,0 @@
-ALTER TABLE users
-ADD COLUMN pic_filename VARCHAR(255) NOT NULL DEFAULT '',
-ADD COLUMN pic_uploaded_at TIMESTAMP;
