@@ -31,7 +31,16 @@ func NewPostgresDatabase(databaseSourceString string, cloudWatchModule cloudwatc
 		log.Fatalf("Failed to created database instance: %v", err)
 	}
 
+	initPostgresParameters(conn)
+
 	return &PostgresDatabase{conn, cloudWatchModule}
+}
+
+func initPostgresParameters(conn *sql.DB) {
+	// TODO: Set these values in the config file
+	conn.SetMaxOpenConns(20)
+	conn.SetMaxIdleConns(10)
+	conn.SetConnMaxLifetime(time.Minute * 5)
 }
 
 func (db *PostgresDatabase) CheckDBConnection() error {
