@@ -24,6 +24,10 @@ type DatabaseConfig struct {
 	TestUsername string `mapstructure:"test_username"`
 	TestPassword string `mapstructure:"test_password"`
 	TestName     string `mapstructure:"test_name"`
+
+	// parameters
+	MaxOpenConns int `mapstructure:"max_open_connections"`
+	MaxIdleConns int `mapstructure:"max_idle_connections"`
 }
 
 var App AppConfig

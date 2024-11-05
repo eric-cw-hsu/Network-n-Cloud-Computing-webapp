@@ -38,8 +38,8 @@ func NewPostgresDatabase(databaseSourceString string, cloudWatchModule cloudwatc
 
 func initPostgresParameters(conn *sql.DB) {
 	// TODO: Set these values in the config file
-	conn.SetMaxOpenConns(20)
-	conn.SetMaxIdleConns(10)
+	conn.SetMaxOpenConns(config.App.Database.MaxOpenConns)
+	conn.SetMaxIdleConns(config.App.Database.MaxIdleConns)
 	conn.SetConnMaxLifetime(time.Minute * 5)
 }
 
