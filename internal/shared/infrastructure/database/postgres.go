@@ -43,27 +43,6 @@ func initPostgresParameters(conn *sql.DB) {
 	conn.SetConnMaxLifetime(time.Minute * 5)
 }
 
-func (db *PostgresDatabase) CheckDBConnection() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-	defer cancel()
-
-	errChan := make(chan error, 1)
-	go func() {
-		errChan <- db.conn.PingContext(ctx)
-	}()
-
-	select {
-	case err := <-errChan:
-		if err != nil {
-			return err
-		}
-		return nil
-	case <-ctx.Done():
-		return errors.New("db connection timeout")
-	}
-}
-
 func (db *PostgresDatabase) GetConnection() *sql.DB {
 	return db.conn
 }
@@ -72,10 +51,61 @@ func (db *PostgresDatabase) Close() {
 	db.conn.Close()
 }
 
+func retry(ctx context.Context, operation func() error, maxRetries int, initialDelay time.Duration) error {
+	var lastErr error
+	delay := initialDelay
+
+	for i := 0; i < maxRetries; i++ {
+		lastErr = operation()
+		if lastErr == nil {
+			return nil
+		}
+
+		if lastErr != sql.ErrNoRows {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(delay):
+				delay *= 2
+			}
+		} else {
+			return lastErr
+		}
+	}
+	return fmt.Errorf("operation failed after %d retries: %w", maxRetries, lastErr)
+}
+
+func (db *PostgresDatabase) CheckDBConnection() error {
+	return retry(context.Background(), func() error {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- db.conn.PingContext(ctx)
+		}()
+
+		select {
+		case err := <-errChan:
+			if err != nil {
+				return err
+			}
+			return nil
+		case <-ctx.Done():
+			return errors.New("db connection timeout")
+		}
+	}, 3, 1000*time.Millisecond)
+}
+
 func (db *PostgresDatabase) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	var result sql.Result
 	start := time.Now()
 
-	result, err := db.conn.ExecContext(ctx, query, args...)
+	err := retry(ctx, func() error {
+		var err error
+		result, err = db.conn.ExecContext(ctx, query, args...)
+		return err
+	}, 3, 1000*time.Millisecond)
 
 	defer db.logLatencyMetric(ctx, query, float64(time.Since(start).Milliseconds()))
 
