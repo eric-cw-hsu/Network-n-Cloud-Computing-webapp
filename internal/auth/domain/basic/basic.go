@@ -6,7 +6,6 @@ import (
 	"errors"
 	"go-template/internal/auth/domain"
 	"strings"
-	"time"
 )
 
 type BasicService struct {
@@ -34,10 +33,7 @@ func (bs *BasicService) Authenticate(token string) (*domain.AuthUser, error) {
 	}
 
 	// 2. check if username and password are valid
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	user, err := bs.authRepository.FindUserByEmail(ctx, email)
+	user, err := bs.authRepository.FindUserByEmail(context.Background(), email)
 	if err != nil {
 		return &domain.AuthUser{}, err
 	}
