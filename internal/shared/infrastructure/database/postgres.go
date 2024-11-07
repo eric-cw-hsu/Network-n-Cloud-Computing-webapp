@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"go-template/internal/cloudwatch"
 	"go-template/internal/config"
@@ -77,23 +76,13 @@ func retry(ctx context.Context, operation func() error, maxRetries int, initialD
 
 func (db *PostgresDatabase) CheckDBConnection() error {
 	return retry(context.Background(), func() error {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-
-		errChan := make(chan error, 1)
-		go func() {
-			errChan <- db.conn.PingContext(ctx)
-		}()
-
-		select {
-		case err := <-errChan:
-			if err != nil {
-				return err
-			}
-			return nil
-		case <-ctx.Done():
-			return errors.New("db connection timeout")
+		err := db.conn.PingContext(context.Background())
+		if err != nil {
+			return err
 		}
+
+		return nil
+
 	}, 3, 1000*time.Millisecond)
 }
 
