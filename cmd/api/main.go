@@ -83,7 +83,7 @@ func initDatabase(cloudWatchModule cloudwatch.CloudWatchModule) database.BaseDat
 
 	postgres := database.NewPostgresDatabase(
 		fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+			"postgres://%s:%s@%s:%d/%s?sslmode=%s&connect_timeout=3",
 			config.App.Database.Username,
 			config.App.Database.Password,
 			config.App.Database.Host,

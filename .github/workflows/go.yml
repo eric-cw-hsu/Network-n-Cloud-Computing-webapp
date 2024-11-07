@@ -36,6 +36,8 @@ jobs:
           echo "  test_username: postgres" >> config.yaml
           echo "  test_password: postgres" >> config.yaml
           echo "  test_name: webapp-test-${{ github.sha }}" >> config.yaml
+          echo "  max_open_connections: 16" >> config.yaml
+          echo "  max_idle_connections: 8" >> config.yaml
 
       - name: Install PostgreSQL client
         run: |
