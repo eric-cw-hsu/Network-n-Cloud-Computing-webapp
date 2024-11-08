@@ -12,6 +12,9 @@ import (
 	"go-template/internal/shared/middleware"
 	"go-template/internal/user"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	_ "go-template/docs"
 	"go-template/internal/config"
@@ -35,6 +38,7 @@ func main() {
 
 	logger := logger.NewLogrusLogger("./logs")
 	cloudWatchModule := cloudwatch.NewModule(logger)
+	defer cloudWatchModule.Shutdown()
 
 	db := initDatabase(cloudWatchModule)
 	defer db.Close()
@@ -57,6 +61,8 @@ func main() {
 		authModule,
 		userModule,
 	)
+
+	setupGracefulShutdown(cloudWatchModule, db)
 
 	serveAndListen(server)
 }
@@ -108,4 +114,21 @@ func serveAndListen(server *http.Server) {
 	if err := server.Start(":" + fmt.Sprint(config.App.Server.Port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+func setupGracefulShutdown(
+	cloudwatchModule cloudwatch.CloudWatchModule,
+	database database.BaseDatabase,
+) {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		fmt.Printf("\n--------------------------------\n")
+		fmt.Println("Shutting down server...")
+		cloudwatchModule.Shutdown()
+		database.Close()
+		os.Exit(0)
+	}()
 }
