@@ -1,9 +1,12 @@
 package domain
 
 import (
+	"errors"
 	"go-template/internal/s3"
 	"mime/multipart"
 )
+
+var ErrInvalidProfilePicContent = errors.New("invalid profile pic content")
 
 type UserService interface {
 	ParseProfilePic(profilePic *multipart.FileHeader) ([]byte, error)
@@ -32,7 +35,7 @@ func (s *userService) ParseProfilePic(profilePic *multipart.FileHeader) ([]byte,
 
 	fileBytes := make([]byte, profilePic.Size)
 	if _, err = file.Read(fileBytes); err != nil {
-		return nil, err
+		return nil, ErrInvalidProfilePicContent
 	}
 
 	return fileBytes, nil

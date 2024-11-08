@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var ErrInvalidToken = errors.New("invalid token")
+
 type BasicService struct {
 	authRepository domain.AuthRepository
 }
@@ -39,7 +41,7 @@ func (bs *BasicService) Authenticate(token string) (*domain.AuthUser, error) {
 	}
 
 	if !domain.VerifyPassword(user, password) {
-		return &domain.AuthUser{}, errors.New("invalid credentials")
+		return &domain.AuthUser{}, ErrInvalidToken
 	}
 
 	return user, nil
@@ -48,7 +50,7 @@ func (bs *BasicService) Authenticate(token string) (*domain.AuthUser, error) {
 func (bs *BasicService) splitToken(token string) (email, password string, err error) {
 	slices := strings.Split(token, ":")
 	if len(slices) != 2 {
-		return "", "", errors.New("invalid token")
+		return "", "", ErrInvalidToken
 	}
 
 	return slices[0], slices[1], nil
