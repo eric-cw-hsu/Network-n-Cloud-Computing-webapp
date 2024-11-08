@@ -28,8 +28,8 @@ build {
   }
 
   provisioner "file" {
-    source      = "./packer/bak-app.service"
-    destination = "/tmp/bak-app.service"
+    source      = "./packer/app-bak.service"
+    destination = "/tmp/app-bak.service"
   }
 
   provisioner "file" {
