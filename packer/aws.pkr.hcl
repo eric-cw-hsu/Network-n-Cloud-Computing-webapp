@@ -28,6 +28,11 @@ build {
   }
 
   provisioner "file" {
+    source      = "./packer/bak-app.service"
+    destination = "/tmp/bak-app.service"
+  }
+
+  provisioner "file" {
     source      = "./packer/nginx.conf"
     destination = "/tmp/nginx.conf"
   }

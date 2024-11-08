@@ -105,7 +105,7 @@ func initDatabase(cloudWatchModule cloudwatch.CloudWatchModule) database.BaseDat
 
 func serveAndListen(server *http.Server) {
 	log.Println("Starting server on :" + fmt.Sprint(config.App.Server.Port))
-	if err := server.Start(":" + fmt.Sprint(config.App.Server.Port)); err != nil {
+	if err := server.Start("127.0.0.1:" + fmt.Sprint(config.App.Server.Port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
