@@ -34,7 +34,7 @@ func NewAuthenticatorService(
 func (s *authenticatorService) JWTAuthenticate(token string) (*domain.AuthUserInfo, *apperrors.Error) {
 	authUserInfo, err := s.jwtService.Authenticate(token)
 	if err != nil {
-		s.logger.Error("Failed to authenticate token", err)
+		s.logger.Debug("Failed to authenticate token", err)
 		return &domain.AuthUserInfo{}, apperrors.NewAuthorization("invalid token")
 	}
 
@@ -44,7 +44,11 @@ func (s *authenticatorService) JWTAuthenticate(token string) (*domain.AuthUserIn
 func (s *authenticatorService) BasicAuthenticate(token string) (*domain.AuthUser, *apperrors.Error) {
 	user, err := s.basicService.Authenticate(token)
 	if err != nil {
-		s.logger.Error("Failed to authenticate user", err)
+		if err == basic.ErrInvalidToken {
+			s.logger.Debug("Failed to authenticate user", err)
+		} else {
+			s.logger.Error("Failed to authenticate user", err)
+		}
 		return &domain.AuthUser{}, apperrors.NewAuthorization("invalid credentials")
 	}
 

@@ -86,7 +86,7 @@ func TestBasicService(t *testing.T) {
 		if err == nil {
 			t.Errorf("Error should not be nil")
 		}
-		if err.Error() != "invalid credentials" {
+		if err != ErrInvalidToken {
 			t.Errorf("Error should be invalid credentials, got %v", err)
 		}
 	})

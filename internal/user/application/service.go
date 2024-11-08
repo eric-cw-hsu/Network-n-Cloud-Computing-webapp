@@ -35,19 +35,19 @@ func (s *userApplicationService) UploadProfilePic(ctx context.Context, user *dom
 
 	fileBytes, err := s.userService.ParseProfilePic(profilePicFile)
 	if err != nil {
-		s.logger.Error("Failed to parse profile pic", err)
-		return nil, apperrors.NewInternal()
+		s.logger.Debug("Failed to parse profile pic", err)
+		return nil, apperrors.NewBadRequest("invalid profile pic content")
 	}
 
 	profilePic, err := s.userService.UploadProfilePic(user.ID, profilePicFile.Filename, fileBytes)
 	if err != nil {
-		s.logger.Error("Failed to upload profile pic", err)
+		s.logger.Error("Failed to upload profile pic to S3", err)
 		return nil, apperrors.NewInternal()
 	}
 
 	err = s.userRepository.SaveProfilePic(ctx, user, profilePic)
 	if err != nil {
-		s.logger.Error("Failed to save profile pic", err)
+		s.logger.Error("Failed to save profile pic to database", err)
 		return nil, apperrors.NewInternal()
 	}
 
@@ -59,18 +59,18 @@ func (s *userApplicationService) DeleteProfilePic(ctx context.Context, user *dom
 	profilePic, err := s.userRepository.GetProfilePic(ctx, user)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			s.logger.Error("profile pic not found", err)
+			s.logger.Debug("profile pic not found", err)
 			return apperrors.NewNotFound("profile pic not found")
 		}
 
-		s.logger.Error("Failed to get profile pic", err)
+		s.logger.Error("Failed to get profile pic from s3", err)
 		return apperrors.NewInternal()
 	}
 
 	// Delete the profile pic from S3
 	err = s.userService.DeleteProfilePic(user.ID + "/" + profilePic.Filename)
 	if err != nil {
-		s.logger.Error("Failed to delete profile pic", err)
+		s.logger.Error("Failed to delete profile pic from S3", err)
 		return apperrors.NewInternal()
 	}
 
@@ -102,11 +102,11 @@ func (s *userApplicationService) GetProfilePic(ctx context.Context, user *domain
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			s.logger.Error("profile pic not found", err)
+			s.logger.Debug("profile pic not found", err)
 			return nil, apperrors.NewNotFound("profile pic not found")
 		}
 
-		s.logger.Error("Failed to get profile pic", err)
+		s.logger.Error("Failed to get profile pic from database", err)
 		return nil, apperrors.NewInternal()
 	}
 

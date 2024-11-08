@@ -10,7 +10,6 @@ import (
 
 type AuthApplicationService interface {
 	Register(ctx context.Context, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
-	Login(ctx context.Context, email, password string) (*domain.AuthUser, string, *apperrors.Error)
 	UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
 }
 
@@ -37,11 +36,12 @@ func (s *authApplicationService) Register(ctx context.Context, email, firstName,
 	exists, err := s.authService.CheckUserExists(ctx, email)
 	if err != nil {
 		s.logger.Error("Failed to check if user exists", err)
+
 		return &domain.AuthUser{}, apperrors.NewInternal()
 	}
 
 	if exists {
-		s.logger.Error("User already exists", nil)
+		s.logger.Debug("User already exists", nil)
 		return &domain.AuthUser{}, apperrors.NewBadRequest("user already exists")
 	}
 
@@ -53,33 +53,6 @@ func (s *authApplicationService) Register(ctx context.Context, email, firstName,
 	}
 
 	return authUser, nil
-}
-
-func (s *authApplicationService) Login(ctx context.Context, email, password string) (*domain.AuthUser, string, *apperrors.Error) {
-	return s.loginWithJWT(ctx, email, password)
-}
-
-func (s *authApplicationService) loginWithJWT(ctx context.Context, email, password string) (*domain.AuthUser, string, *apperrors.Error) {
-	// 1. check username, email, password in the database
-	user, err := s.authService.AuthenticateUser(ctx, email, password)
-	if err != nil {
-		s.logger.Error("Failed to authenticate user", err)
-		return nil, "", apperrors.NewAuthorization("invalid credentials")
-	}
-
-	authUserInfo := domain.NewAuthUserInfo(user.ID, user.Email)
-
-	// 2. generate jwt token
-	token, err := s.jwtService.GenerateToken(authUserInfo)
-	if err != nil {
-		s.logger.Error("Failed to generate token", err)
-		return nil, "", apperrors.NewInternal()
-	}
-
-	// 3. update last login
-	user.UpdateLastLogin()
-
-	return user, token, nil
 }
 
 func (s *authApplicationService) UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error) {
