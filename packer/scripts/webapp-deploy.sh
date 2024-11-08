@@ -12,8 +12,8 @@ sudo useradd --system -g csye6225 -s /usr/sbin/nologin csye6225
 sudo rm /etc/nginx/sites-enabled/default
 sudo cp /tmp/nginx.conf /etc/nginx/sites-available/webapp.conf
 sudo ln -s /etc/nginx/sites-available/webapp.conf /etc/nginx/sites-enabled/
-sed -i 's/worker_connections 768;/worker_connections 1024;/g' /etc/nginx/nginx.conf
-sed -i 's/#\s*multi_accept on;/multi_accept on;/g' /etc/nginx/nginx.conf
+sudo sed -i 's/worker_connections 768;/worker_connections 1024;/g' /etc/nginx/nginx.conf
+sudo sed -i 's/#\s*multi_accept on;/multi_accept on;/g' /etc/nginx/nginx.conf
 
 # main server
 sudo cp /tmp/app /opt/webapp/app
