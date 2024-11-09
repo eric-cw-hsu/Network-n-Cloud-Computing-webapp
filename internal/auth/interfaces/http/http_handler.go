@@ -48,36 +48,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.NewUserResponse(user))
 }
 
-// @Summary Login
-// @Description Login to the application
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param input body dto.LoginInput true "User login details"
-// @Success 200 {object} dto.LoginResponse
-// @Router /api/v1/login [post]
-func (h *AuthHandler) Login(c *gin.Context) {
-	var input dto.LoginInput
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	// ---- Login with JWT ----
-	user, token, err := h.authService.Login(c.Request.Context(), input.Email, input.Password)
-	if err != nil {
-		c.JSON(err.Status(), gin.H{"error": err.Message})
-		return
-	}
-	// ---- [END] Login with JWT ----
-
-	c.JSON(http.StatusOK, gin.H{
-		"user":  dto.NewUserResponse(user),
-		"token": token,
-	})
-}
-
 // @Summary Get user profile
 // @Description Get user profile
 // @Tags auth

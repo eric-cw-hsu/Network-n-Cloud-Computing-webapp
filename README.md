@@ -31,6 +31,10 @@ server:
 aws:
     region:
     bucket_name:
+
+    cloudwatch:
+        push_interval:
+        buffer_size:
 ```
 3. Run the application
    ```sh

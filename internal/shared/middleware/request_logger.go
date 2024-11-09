@@ -34,14 +34,17 @@ func (m *RequestLoggerMiddleware) Handler() gin.HandlerFunc {
 
 		latency := time.Since(startTime)
 
-		m.logger.Info(fmt.Sprintf("%s %s %s %s %d %s",
-			c.Request.Method,
-			c.Request.URL.Path,
-			c.ClientIP(),
-			latency,
-			c.Writer.Status(),
-			c.Errors.String(),
-		))
+		m.logger.Info(
+			fmt.Sprintf(
+				`{"method": "%s", "path": "%s", "client_ip": "%s", "latency": "%s", "status": %d, "errors": "%s"}`,
+				c.Request.Method,
+				c.Request.URL.Path,
+				c.ClientIP(),
+				latency,
+				c.Writer.Status(),
+				c.Errors.String(),
+			),
+		)
 
 		apiName := fmt.Sprintf("[%s]%s", c.Request.Method, c.Request.URL.Path)
 

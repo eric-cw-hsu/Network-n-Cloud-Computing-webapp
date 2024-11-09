@@ -40,7 +40,7 @@ type MockCloudWatchModule struct {
 
 func (m *MockCloudWatchModule) PublishMetric(namespace, metricName string, value float64, unit types.StandardUnit) {
 }
-
+func (m *MockCloudWatchModule) Shutdown() {}
 func TestAuthAPI(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"go-template/internal/auth/domain"
 	"go-template/internal/shared/infrastructure/database"
-	"go-template/pkg/apperrors"
 
 	"github.com/lib/pq"
 )
@@ -23,7 +22,7 @@ func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUs
 	query := `INSERT INTO users (id, email, first_name, last_name, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := r.db.ExecContext(ctx, query, user.ID, user.Email, user.FirstName, user.LastName, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
-		return apperrors.NewInternal()
+		return database.ErrDatabaseError
 	}
 
 	return nil
@@ -54,7 +53,7 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, err
+		return nil, database.ErrDatabaseError
 	}
 
 	return &user, nil
