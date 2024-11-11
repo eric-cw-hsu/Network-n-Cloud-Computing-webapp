@@ -38,6 +38,7 @@ func (m *Module) RegisterRoutes(router *gin.Engine) {
 
 	userRouter := router.Group("/v1/user")
 	userRouter.Use(middleware.BasicAuthMiddleware(m.basicService))
+	userRouter.Use(middleware.AccountVerificationMiddleware())
 	{
 		userRouter.POST("/self/pic", m.handler.UploadProfilePic)
 		userRouter.GET("/self/pic", m.handler.GetProfilePic)

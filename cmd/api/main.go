@@ -5,6 +5,7 @@ import (
 	"go-template/internal/auth"
 	"go-template/internal/aws/cloudwatch"
 	"go-template/internal/aws/s3"
+	"go-template/internal/aws/sns"
 	"go-template/internal/shared"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
@@ -44,8 +45,9 @@ func main() {
 	defer db.Close()
 
 	s3Module := s3.NewModule(logger, cloudWatchModule)
+	snsModule := sns.NewModule(logger)
 
-	authModule := auth.NewModule(db, logger)
+	authModule := auth.NewModule(db, logger, snsModule)
 	userModule := user.NewModule(db, logger, authModule.GetBasicService(), s3Module)
 
 	server := http.NewServer()
