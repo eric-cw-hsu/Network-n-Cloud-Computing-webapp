@@ -3,7 +3,7 @@ package user
 import (
 	"go-template/internal/auth/domain/basic"
 	"go-template/internal/auth/interfaces/http/middleware"
-	"go-template/internal/s3"
+	"go-template/internal/aws/s3"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
 	"go-template/internal/user/application"

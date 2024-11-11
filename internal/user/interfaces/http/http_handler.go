@@ -2,7 +2,7 @@ package http
 
 import (
 	authDomain "go-template/internal/auth/domain"
-	"go-template/internal/s3"
+	"go-template/internal/aws/s3"
 	"go-template/internal/user/application"
 	"go-template/internal/user/domain"
 	"go-template/internal/user/interfaces/dto"

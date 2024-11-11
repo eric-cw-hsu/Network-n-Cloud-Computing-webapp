@@ -5,6 +5,8 @@ type AppConfig struct {
 	Environment string
 	Server      ServerConfig
 	Database    DatabaseConfig
+
+	SecretKey string `mapstructure:"secret_key"`
 }
 
 type ServerConfig struct {

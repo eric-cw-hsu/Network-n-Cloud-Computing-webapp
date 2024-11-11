@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"go-template/internal/auth"
-	"go-template/internal/cloudwatch"
-	"go-template/internal/s3"
+	"go-template/internal/aws/cloudwatch"
+	"go-template/internal/aws/s3"
 	"go-template/internal/shared"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"

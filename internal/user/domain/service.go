@@ -2,7 +2,7 @@ package domain
 
 import (
 	"errors"
-	"go-template/internal/s3"
+	"go-template/internal/aws/s3"
 	"mime/multipart"
 )
 
