@@ -13,6 +13,7 @@ type AuthUser struct {
 	FirstName    string
 	LastName     string
 	PasswordHash string
+	Verify       bool
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -51,6 +52,7 @@ func NewAuthUser(
 		FirstName:    firstName,
 		LastName:     lastName,
 		PasswordHash: string(hashedPassword),
+		Verify:       false,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}, nil

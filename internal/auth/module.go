@@ -5,10 +5,10 @@ import (
 	"go-template/internal/auth/config"
 	"go-template/internal/auth/domain"
 	"go-template/internal/auth/domain/basic"
-	"go-template/internal/auth/domain/jwt"
 	"go-template/internal/auth/infrastructure"
 	"go-template/internal/auth/interfaces/http"
 	"go-template/internal/auth/interfaces/http/middleware"
+	"go-template/internal/aws/sns"
 	sharedConfig "go-template/internal/shared/config"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
@@ -19,30 +19,22 @@ import (
 
 type Module struct {
 	handler      *http.AuthHandler
-	jwtService   *jwt.JWTService
 	basicService *basic.BasicService
 	authConfig   *config.AuthConfig
 }
 
-func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
+func NewModule(db database.BaseDatabase, logger logger.Logger, snsModule sns.SNSModule) *Module {
 	// load auth config with viper
 	authConfig := loadConfig()
 
-	jwtConfig := &jwt.JWTConfig{
-		JWTSecret:       authConfig.Auth.JWTSecret,
-		TokenExpiration: authConfig.Auth.TokenExpiration,
-	}
-	jwtService := jwt.NewJWTService(jwtConfig)
-
 	authRepo := infrastructure.NewPostgresAuthRepository(db)
-	authDomainService := domain.NewAuthService(authRepo, logger)
-	authAppService := application.NewAuthApplicationService(authDomainService, jwtService, logger)
+	authDomainService := domain.NewAuthService(authRepo, logger, authConfig, snsModule)
+	authAppService := application.NewAuthApplicationService(authDomainService, logger)
 	authHandler := http.NewAuthHandler(authAppService)
 	basicService := basic.NewBasicService(authRepo)
 
 	return &Module{
 		handler:      authHandler,
-		jwtService:   jwtService,
 		authConfig:   authConfig,
 		basicService: basicService,
 	}
@@ -58,24 +50,22 @@ func loadConfig() *config.AuthConfig {
 	return authConfig
 }
 
-func (m *Module) GetJWTAuthMiddleware() gin.HandlerFunc {
-	return middleware.JWTAuthMiddleware(m.jwtService)
-}
-
 func (m *Module) GetBasicService() *basic.BasicService {
 	return m.basicService
 }
 
 func (m *Module) RegisterRoutes(router *gin.Engine) {
 
+	router.GET("/verify", m.handler.VerifyAccount)
+
 	V1 := router.Group("/v1")
 	{
 		V1.POST("/user", m.handler.Register)
-		// apiV1.POST("/login", m.handler.Login)
 
 		// the route below protected by basic auth middleware
 		authenticated := V1.Group("/")
 		authenticated.Use(middleware.BasicAuthMiddleware(m.basicService))
+		authenticated.Use(middleware.AccountVerificationMiddleware())
 		{
 			authenticated.GET("/user/self", m.handler.GetUser)
 			authenticated.PUT("/user/self", m.handler.UpdateUser)

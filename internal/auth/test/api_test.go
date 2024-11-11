@@ -33,6 +33,15 @@ func (m *MockLogger) Error(args ...interface{}) {}
 func (m *MockLogger) Debug(args ...interface{}) {}
 func (m *MockLogger) Warn(args ...interface{})  {}
 
+// Mock SNS module
+type MockSNSModule struct {
+	mock.Mock
+}
+
+func (m *MockSNSModule) PublishMessage(message string, topicArn string) error {
+	return nil
+}
+
 // Mock cloudwatch module
 type MockCloudWatchModule struct {
 	mock.Mock
@@ -54,11 +63,12 @@ func TestAuthAPI(t *testing.T) {
 	mockCloudWatchModule := new(MockCloudWatchModule)
 	database := initDatabase(mockCloudWatchModule)
 	defer database.Close()
+	mockSNSModule := new(MockSNSModule)
 
 	// Setup server
 	server := sharedHttp.NewServer()
 	server.AddModules(
-		auth.NewModule(database, mockLogger),
+		auth.NewModule(database, mockLogger, mockSNSModule),
 	)
 
 	go func() {
@@ -137,6 +147,11 @@ func TestAuthAPI(t *testing.T) {
 		// Perform the request
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// verify user
+	t.Run("VerifyUser", func(t *testing.T) {
+		database.GetConnection().Exec("UPDATE users SET verify = true WHERE email = $1", email)
 	})
 
 	t.Run("TestUpdateUser", func(t *testing.T) {

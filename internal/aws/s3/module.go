@@ -3,7 +3,7 @@ package s3
 import (
 	"bytes"
 	"context"
-	"go-template/internal/cloudwatch"
+	"go-template/internal/aws/cloudwatch"
 	appConfig "go-template/internal/config"
 	"go-template/internal/shared/config"
 	"go-template/internal/shared/infrastructure/logger"
@@ -68,7 +68,7 @@ func (m *module) GetFile(key string) ([]byte, error) {
 	buffer := manager.NewWriteAtBuffer([]byte{})
 
 	numBytes, err := downloader.Download(context.TODO(), buffer, &s3.GetObjectInput{
-		Bucket: aws.String(m.s3Config.AWS.BucketName),
+		Bucket: aws.String(m.s3Config.AWS.S3.BucketName),
 		Key:    aws.String(key),
 	})
 
@@ -86,7 +86,7 @@ func (m *module) UploadFile(key string, file []byte) (*manager.UploadOutput, err
 
 	uploader := manager.NewUploader(m.client)
 	result, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(m.s3Config.AWS.BucketName),
+		Bucket: aws.String(m.s3Config.AWS.S3.BucketName),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(file),
 	})
@@ -100,7 +100,7 @@ func (m *module) DeleteFile(key string) error {
 	startTime := time.Now()
 
 	_, err := m.client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
-		Bucket: aws.String(m.s3Config.AWS.BucketName),
+		Bucket: aws.String(m.s3Config.AWS.S3.BucketName),
 		Key:    aws.String(key),
 	})
 
@@ -109,7 +109,7 @@ func (m *module) DeleteFile(key string) error {
 }
 
 func (m *module) GetBucketName() string {
-	return m.s3Config.AWS.BucketName
+	return m.s3Config.AWS.S3.BucketName
 }
 
 func (m *module) logLatencyMetric(action string, latency float64) {

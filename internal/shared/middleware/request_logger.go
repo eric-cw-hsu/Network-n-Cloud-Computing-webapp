@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"go-template/internal/cloudwatch"
+	"go-template/internal/aws/cloudwatch"
 	"go-template/internal/config"
 	"go-template/internal/shared/infrastructure/logger"
 	"time"
