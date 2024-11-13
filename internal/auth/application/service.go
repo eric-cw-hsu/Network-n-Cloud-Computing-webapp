@@ -10,7 +10,7 @@ import (
 type AuthApplicationService interface {
 	Register(ctx context.Context, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
 	UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
-	VerifyAccount(ctx context.Context, token, userId, expiredAt string) *apperrors.Error
+	VerifyAccount(ctx context.Context, token, userId string) *apperrors.Error
 }
 
 type authApplicationService struct {
@@ -76,9 +76,9 @@ func (s *authApplicationService) UpdateUser(ctx context.Context, user *domain.Au
 	return user, nil
 }
 
-func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userId, expiredAt string) *apperrors.Error {
+func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userId string) *apperrors.Error {
 	// 1. verify account
-	err := s.authService.VerifyVerificationEmailToken(token, userId, expiredAt)
+	err := s.authService.VerifyVerificationEmailToken(token, userId)
 	if err != nil {
 		return apperrors.NewBadRequest(err.Error())
 	}

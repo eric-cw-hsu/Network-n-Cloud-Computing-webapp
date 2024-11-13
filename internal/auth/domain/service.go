@@ -23,7 +23,7 @@ type AuthService interface {
 	CheckUserExists(ctx context.Context, email string) (bool, error)
 	UpdateUser(ctx context.Context, user *AuthUser) error
 	SendVerificationEmail(user *AuthUser) error
-	VerifyVerificationEmailToken(token, userId, expiredAt string) error
+	VerifyVerificationEmailToken(token, userId string) error
 	VerifiedUserAccountStatus(ctx context.Context, userId string) error
 }
 
@@ -102,7 +102,7 @@ Construct the verification email message
 - And Serialize the message to string
 */
 func (s *authService) generateVerificationEmailMessage(user *AuthUser) (string, error) {
-	token, expiredAt, err := s.generateVerificationEmailToken(user, s.authConfig.Auth.VerifyEmailExpirationTime)
+	token, err := s.generateVerificationEmailToken(user, s.authConfig.Auth.VerifyEmailExpirationTime)
 	if err != nil {
 		return "", err
 	}
@@ -111,9 +111,8 @@ func (s *authService) generateVerificationEmailMessage(user *AuthUser) (string, 
 		"to_name": "%s",
 		"to_addr": "%s",
 		"user_id": "%s",
-		"token": "%s",
-		"expiration": "%d"
-	}`, user.FirstName, user.Email, user.ID, token, expiredAt.Unix())
+		"token": "%s"
+	}`, user.FirstName, user.Email, user.ID, token)
 
 	return message, nil
 }
@@ -122,7 +121,7 @@ func (s *authService) generateVerificationEmailMessage(user *AuthUser) (string, 
 Generate a token for verifying email
 Using JWT to generate a token
 */
-func (s *authService) generateVerificationEmailToken(user *AuthUser, expiredTime int) (string, time.Time, error) {
+func (s *authService) generateVerificationEmailToken(user *AuthUser, expiredTime int) (string, error) {
 	expiredAt := time.Now().Add(time.Duration(expiredTime) * time.Second)
 	claims := &jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),
@@ -132,13 +131,13 @@ func (s *authService) generateVerificationEmailToken(user *AuthUser, expiredTime
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(appConfig.App.SecretKey))
 	if err != nil {
-		return "", time.Time{}, err
+		return "", err
 	}
 
-	return tokenString, expiredAt, nil
+	return tokenString, nil
 }
 
-func (s *authService) VerifyVerificationEmailToken(token, userId, expiredAt string) error {
+func (s *authService) VerifyVerificationEmailToken(token, userId string) error {
 	claims := &jwt.StandardClaims{}
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(appConfig.App.SecretKey), nil
