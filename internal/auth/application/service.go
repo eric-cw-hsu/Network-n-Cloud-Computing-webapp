@@ -10,7 +10,8 @@ import (
 type AuthApplicationService interface {
 	Register(ctx context.Context, email, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
 	UpdateUser(ctx context.Context, user *domain.AuthUser, firstName, lastName, password string) (*domain.AuthUser, *apperrors.Error)
-	VerifyAccount(ctx context.Context, token, userId, expiredAt string) *apperrors.Error
+	VerifyAccount(ctx context.Context, token, userId string) *apperrors.Error
+	ResendVerification(ctx context.Context, user *domain.AuthUser) *apperrors.Error
 }
 
 type authApplicationService struct {
@@ -76,9 +77,9 @@ func (s *authApplicationService) UpdateUser(ctx context.Context, user *domain.Au
 	return user, nil
 }
 
-func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userId, expiredAt string) *apperrors.Error {
+func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userId string) *apperrors.Error {
 	// 1. verify account
-	err := s.authService.VerifyVerificationEmailToken(token, userId, expiredAt)
+	err := s.authService.VerifyVerificationEmailToken(token, userId)
 	if err != nil {
 		return apperrors.NewBadRequest(err.Error())
 	}
@@ -95,6 +96,22 @@ func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userI
 		}
 
 		s.logger.Error("Failed to update user account status", err)
+		return apperrors.NewInternal()
+	}
+
+	return nil
+}
+
+func (s *authApplicationService) ResendVerification(ctx context.Context, user *domain.AuthUser) *apperrors.Error {
+	// 1. check if user is already verified
+	if user.Verify {
+		return apperrors.NewBadRequest("User already verified")
+	}
+
+	// 2. send verification email
+	err := s.authService.SendVerificationEmail(user)
+	if err != nil {
+		s.logger.Error("Failed to send verification email", err)
 		return apperrors.NewInternal()
 	}
 
