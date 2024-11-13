@@ -60,10 +60,10 @@ func (m *Module) RegisterRoutes(router *gin.Engine) {
 
 	v1User := router.Group("/v1/user")
 	{
-		v1User.POST("/", m.handler.Register)
+		v1User.POST("", m.handler.Register)
 
 		// the route below protected by basic auth middleware
-		authenticated := v1User.Group("/")
+		authenticated := v1User.Group("")
 		authenticated.Use(middleware.BasicAuthMiddleware(m.basicService))
 		{
 			authenticated.GET("/resend-verification-email", m.handler.ResendVerification)
