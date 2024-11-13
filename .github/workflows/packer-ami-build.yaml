@@ -91,9 +91,22 @@ jobs:
       - name: Install AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Build AMI
-        run: packer build ./packer
+        run: packer build ./packer/ami.json | tee packer_output.log
+
+      - name: Extract AMI ID
+        id: get_ami_id
+        run: |
+          AMI_ID=$(grep 'artifact,0,id' packer_output.log | cut -d, -f6 | cut -d: -f2)
+          echo "AMI ID is $AMI_ID"
+          echo $AMI_ID > AMI_ID.txt
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ami-id
+          path: ami_id.txt
