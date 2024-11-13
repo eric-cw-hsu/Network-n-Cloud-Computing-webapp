@@ -101,7 +101,7 @@ jobs:
       - name: Extract AMI ID
         id: get_ami_id
         run: |
-          AMI_ID=$(grep 'artifact,0,id' packer_output.log | cut -d, -f6 | cut -d: -f2)
+          AMI_ID=$(grep -o 'AMI: ami-[^ ]*' packer_output.log | cut -d' ' -f2)
           echo "AMI ID is $AMI_ID"
           echo $AMI_ID > AMI_ID.txt
       
