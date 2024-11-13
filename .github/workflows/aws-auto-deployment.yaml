@@ -21,15 +21,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
           aws-region:  ${{ vars.AWS_REGION }}
 
-      - name: Download AMI ID artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: ami-id
-          path: .
-
       - name: Load AMI ID
         run: |
-          AMI_ID=$(cat ami_id.txt)
+          AMI_ID="${{ github.event.workflow_run.jobs.build-ami.outputs.ami_id }}"
           echo "AMI ID is $AMI_ID"
 
           if [ -z "$AMI_ID" ]; then
