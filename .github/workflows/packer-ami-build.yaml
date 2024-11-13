@@ -96,7 +96,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Build AMI
-        run: packer build ./packer/ami.json | tee packer_output.log
+        run: packer build ./packer | tee packer_output.log
 
       - name: Extract AMI ID
         id: get_ami_id
