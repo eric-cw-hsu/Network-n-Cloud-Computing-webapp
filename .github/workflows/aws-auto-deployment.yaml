@@ -1,0 +1,107 @@
+name: AWS-AUTO-DEPLOYMENT
+
+on:
+  workflow_run:
+    workflows: ["A Workflow"]
+    types:
+      - completed
+
+jobs:
+  aws-auto-deployment:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.head_branch == 'main' }}
+    environment: 
+      name: AWS_DEPLOYMENT
+
+    steps:
+      - name: Install AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          aws-region:  ${{ vars.AWS_REGION }}
+
+      - name: Download AMI ID artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ami-id
+          path: .
+
+      - name: Load AMI ID
+        run: |
+          AMI_ID=$(cat ami_id.txt)
+          echo "AMI ID is $AMI_ID"
+
+          if [ -z "$AMI_ID" ]; then
+            echo "Error: AMI ID is empty"
+            exit 1
+          fi
+
+      - name: Get Previous Launch Template Version
+        run: |
+          PREVIOUS_VERSION=$(aws ec2 describe-launch-template-versions \
+            --launch-template-name ${{ vars.PROD_WEBAPP_LAUNCH_TEMPLATE_NAME }} \
+            --query "LaunchTemplateVersions[-1].VersionNumber" --output text)
+
+      - name: Create Launch Template Version
+        run: |
+          aws ec2 create-launch-template-version \
+            --launch-template-name ${{ vars.PROD_WEBAPP_LAUNCH_TEMPLATE_NAME }} \
+            --version-description "Updated with new version release" \
+            --source-version $PREVIOUS_VERSION \
+            --launch-template-data "ImageId=$AMI_ID"
+      
+      - name: Update Auto Scaling Group
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name ${{ vars.PROD_WEBAPP_ASG_NAME }} \
+            --launch-template "LaunchTemplateName=${{ vars.PROD_WEBAPP_LAUNCH_TEMPLATE_NAME}},Version=\$Latest"
+
+      - name: Trigger Instance Refresh
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ vars.PROD_WEBAPP_ASG_NAME }} \
+            --query "InstanceRefreshId" --output text)
+          echo "Instance refresh started with ID: $REFRESH_ID"
+
+      - name: Wait for Instance Refresh
+        id: refresh_status
+        continue-on-error: true
+        run: |
+          while true; do
+            REFRESH_STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name ${{ vars.PROD_WEBAPP_ASG_NAME }} \
+              --instance-refresh-ids $REFRESH_ID \
+              --query "InstanceRefreshes[0].Status" --output text)
+            
+            echo "Current Instance Refresh Status: $REFRESH_STATUS"
+            
+            if [[ "$REFRESH_STATUS" == "Successful" ]]; then
+              echo "Instance refresh completed successfully."
+              break
+            elif [[ "$REFRESH_STATUS" == "Failed" ]]; then
+              echo "Instance refresh failed."
+              exit 1
+            else
+              echo "Instance refresh is in progress. Waiting..."
+              sleep 30
+            fi
+          done
+
+
+      - name: Rollback to Previous Launch Template Version
+        if: ${{ steps.refresh_status.outcome == 'failure' }}
+        run: |
+          echo "Rolling back to version $PREVIOUS_VERSION"
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name ${{ vars.PROD_WEBAPP_ASG_NAME }} \
+            --launch-template "LaunchTemplateName=${{ vars.PROD_WEBAPP_LAUNCH_TEMPLATE_NAME }},Version=$PREVIOUS_VERSION"
+
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ vars.PROD_WEBAPP_ASG_NAME }} \
+            --query "InstanceRefreshId" --output text)
+          
+          echo "Instance refresh started with ID: $REFRESH_ID to roll back instances to the previous version"
+            
+
+      

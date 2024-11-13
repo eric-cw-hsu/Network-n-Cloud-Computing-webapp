@@ -3,7 +3,7 @@ package user
 import (
 	"go-template/internal/auth/domain/basic"
 	"go-template/internal/auth/interfaces/http/middleware"
-	"go-template/internal/s3"
+	"go-template/internal/aws/s3"
 	"go-template/internal/shared/infrastructure/database"
 	"go-template/internal/shared/infrastructure/logger"
 	"go-template/internal/user/application"
@@ -38,6 +38,7 @@ func (m *Module) RegisterRoutes(router *gin.Engine) {
 
 	userRouter := router.Group("/v1/user")
 	userRouter.Use(middleware.BasicAuthMiddleware(m.basicService))
+	userRouter.Use(middleware.AccountVerificationMiddleware())
 	{
 		userRouter.POST("/self/pic", m.handler.UploadProfilePic)
 		userRouter.GET("/self/pic", m.handler.GetProfilePic)

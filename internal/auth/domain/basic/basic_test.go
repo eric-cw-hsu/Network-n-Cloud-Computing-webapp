@@ -24,8 +24,13 @@ func (m *MockAuthRepository) FindUserByUsername(ctx context.Context, username st
 	args := m.Called(ctx, username)
 	return args.Get(0).(*domain.AuthUser), args.Error(1)
 }
-
+func (m *MockAuthRepository) FindUserByID(ctx context.Context, id string) (*domain.AuthUser, error) {
+	return nil, nil
+}
 func (m *MockAuthRepository) Update(ctx context.Context, user *domain.AuthUser) error { return nil }
+func (m *MockAuthRepository) VerifyAccount(ctx context.Context, user *domain.AuthUser) error {
+	return nil
+}
 
 func TestBasicService(t *testing.T) {
 	gin.SetMode(gin.TestMode)

@@ -102,6 +102,35 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+func (h *AuthHandler) VerifyAccount(c *gin.Context) {
+	token := c.Query("token")
+	userId := c.Query("user_id")
+
+	if token == "" || userId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token, and user_id are required"})
+		return
+	}
+
+	err := h.authService.VerifyAccount(c.Request.Context(), token, userId)
+	if err != nil {
+		c.JSON(err.Status(), gin.H{"error": err.Message})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *AuthHandler) ResendVerification(c *gin.Context) {
+	user, _ := c.Get("user")
+	err := h.authService.ResendVerification(c.Request.Context(), user.(*domain.AuthUser))
+	if err != nil {
+		c.JSON(err.Status(), gin.H{"error": err.Message})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 func checkFieldsIsValid(rawBody []byte, expectedFields []string) error {
 	var data map[string]interface{}
 	if err := json.Unmarshal(rawBody, &data); err != nil {

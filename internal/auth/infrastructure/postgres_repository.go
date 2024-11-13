@@ -28,13 +28,18 @@ func (r *postgresAuthRepository) Create(ctx context.Context, user *domain.AuthUs
 	return nil
 }
 
+func (r *postgresAuthRepository) FindUserByID(ctx context.Context, id string) (*domain.AuthUser, error) {
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at, verify FROM users WHERE id = $1`
+	return r.findUser(ctx, query, id)
+}
+
 func (r *postgresAuthRepository) FindUserByEmail(ctx context.Context, email string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at, verify FROM users WHERE email = $1`
 	return r.findUser(ctx, query, email)
 }
 
 func (r *postgresAuthRepository) FindUserByUsername(ctx context.Context, username string) (*domain.AuthUser, error) {
-	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE username = $1`
+	query := `SELECT id, email, first_name, last_name, password, created_at, updated_at, verify FROM users WHERE username = $1`
 	return r.findUser(ctx, query, username)
 }
 
@@ -48,6 +53,7 @@ func (r *postgresAuthRepository) findUser(ctx context.Context, query string, arg
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.Verify,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -81,6 +87,15 @@ func (r *postgresAuthRepository) Update(ctx context.Context, user *domain.AuthUs
 			}
 		}
 		return err
+	}
+	return nil
+}
+
+func (r *postgresAuthRepository) VerifyAccount(ctx context.Context, user *domain.AuthUser) error {
+	query := `UPDATE users SET verify = true WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, user.ID)
+	if err != nil {
+		return database.ErrDatabaseError
 	}
 	return nil
 }

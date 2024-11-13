@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go-template/internal/cloudwatch"
+	"go-template/internal/aws/cloudwatch"
 	"go-template/internal/config"
 	"go-template/internal/utils"
 	"log"

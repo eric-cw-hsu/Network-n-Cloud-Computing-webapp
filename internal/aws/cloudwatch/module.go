@@ -2,12 +2,13 @@ package cloudwatch
 
 import (
 	"context"
-	"fmt"
 	"go-template/internal/shared/config"
 	"go-template/internal/shared/infrastructure/logger"
 	"log"
 	"sync"
 	"time"
+
+	appConfig "go-template/internal/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
@@ -114,14 +115,15 @@ func (m *module) startAutoFlush() {
 
 func (m *module) flush(namespace string) {
 	if metrics, exists := m.metricDataBuffer[namespace]; exists && len(metrics) > 0 {
-		fmt.Printf("Flushing %d metrics to CloudWatch\n", len(metrics))
 
-		_, err := m.client.PutMetricData(context.TODO(), &cloudwatch.PutMetricDataInput{
-			Namespace:  aws.String(namespace),
-			MetricData: metrics,
-		})
-		if err != nil {
-			m.logger.Error("Failed to publish metrics: ", err)
+		if appConfig.App.Environment != "development" {
+			_, err := m.client.PutMetricData(context.TODO(), &cloudwatch.PutMetricDataInput{
+				Namespace:  aws.String(namespace),
+				MetricData: metrics,
+			})
+			if err != nil {
+				m.logger.Error("Failed to publish metrics: ", err)
+			}
 		}
 
 		m.metricDataBuffer[namespace] = m.metricDataBuffer[namespace][:0]
