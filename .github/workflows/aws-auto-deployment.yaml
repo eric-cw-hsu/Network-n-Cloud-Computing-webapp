@@ -2,7 +2,7 @@ name: AWS-AUTO-DEPLOYMENT
 
 on:
   workflow_run:
-    workflows: ["A Workflow"]
+    workflows: ["Packer-AMI-Build"]
     types:
       - completed
 
