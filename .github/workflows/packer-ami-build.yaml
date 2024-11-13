@@ -103,7 +103,7 @@ jobs:
         run: |
           AMI_ID=$(grep -o 'AMI: ami-[^ ]*' packer_output.log | cut -d' ' -f2)
           echo "AMI ID is $AMI_ID"
-          echo $AMI_ID > AMI_ID.txt
+          echo $AMI_ID > ami_id.txt
       
       - name: Upload artifact
         uses: actions/upload-artifact@v3
