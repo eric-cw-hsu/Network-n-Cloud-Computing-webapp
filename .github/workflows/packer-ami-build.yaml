@@ -148,11 +148,16 @@ jobs:
             exit 1
           fi
 
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+
       - name: Get Previous Launch Template Version
         run: |
           PREVIOUS_VERSION=$(aws ec2 describe-launch-template-versions \
             --launch-template-name ${{ vars.PROD_WEBAPP_LAUNCH_TEMPLATE_NAME }} \
             --query "LaunchTemplateVersions[-1].VersionNumber" --output text)
+
+          echo "Previous Launch Template Version: $PREVIOUS_VERSION"
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> $GITHUB_ENV
 
       - name: Create Launch Template Version
         run: |
