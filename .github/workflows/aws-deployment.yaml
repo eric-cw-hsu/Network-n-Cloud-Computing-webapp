@@ -101,7 +101,7 @@ jobs:
       - name: Extract AMI ID
         id: get_ami_id
         run: |
-          AMI_ID=$(grep -o 'AMI: ami-[^ ]*' packer_output.log | cut -d' ' -f2)
+          AMI_ID=$(grep -o 'AMI: ami-[^ ]*' packer_output.log | cut -d' ' -f2 | sed 's/\x1b\[[0-9;]*m//g')
           echo "AMI ID is $AMI_ID"
 
           if [ -z "$AMI_ID" ]; then
