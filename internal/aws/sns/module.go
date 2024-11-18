@@ -24,8 +24,11 @@ type module struct {
 func NewModule(logger logger.Logger) SNSModule {
 	snsConfig := loadConfig()
 
-	ctx := context.Background()
-	sdkConfig, err := awsConfig.LoadDefaultConfig(ctx)
+	sdkConfig, err := awsConfig.LoadDefaultConfig(
+		context.Background(),
+		awsConfig.WithRegion(snsConfig.AWS.Region),
+	)
+
 	if err != nil {
 		fmt.Println(err)
 		log.Fatalf("unable to load AWS SDK config, %v", err)
