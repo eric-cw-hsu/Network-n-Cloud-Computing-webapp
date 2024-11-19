@@ -121,7 +121,7 @@ jobs:
   aws-continuous-deployment:
     needs: packer-ami-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/demo'
     environment: 
       name: AWS_DEPLOYMENT
 
