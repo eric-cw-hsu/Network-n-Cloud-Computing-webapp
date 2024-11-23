@@ -19,6 +19,7 @@ const (
 	PayloadTooLarge     Type = "PAYLOAD_TOO_LARGE"
 	UnprocessableEntity Type = "UNPROCESSABLE_ENTITY" // 422
 	ErrInvalidClaims    Type = "INVALID_CLAIMS"       // Invalid JWT claims
+	Forbidden           Type = "FORBIDDEN"
 )
 
 // Error holds a custom error for the application
@@ -53,6 +54,8 @@ func (e Error) Status() int {
 		return http.StatusUnprocessableEntity
 	case ErrInvalidClaims:
 		return http.StatusUnauthorized
+	case Forbidden:
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}
@@ -131,5 +134,13 @@ func NewInvalidClaims(reason string) *Error {
 	return &Error{
 		Type:    ErrInvalidClaims,
 		Message: fmt.Sprintf("Invalid claims. Reason: %v", reason),
+	}
+}
+
+// 403 Forbidden
+func NewForbidden(reason string) *Error {
+	return &Error{
+		Type:    Forbidden,
+		Message: fmt.Sprintf("Forbidden. Reason: %v", reason),
 	}
 }
