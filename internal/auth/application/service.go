@@ -81,7 +81,7 @@ func (s *authApplicationService) VerifyAccount(ctx context.Context, token, userI
 	// 1. verify account
 	err := s.authService.VerifyVerificationEmailToken(token, userId)
 	if err != nil {
-		return apperrors.NewBadRequest(err.Error())
+		return apperrors.NewForbidden(err.Error())
 	}
 
 	// 2. update user account status in database
