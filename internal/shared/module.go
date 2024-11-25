@@ -23,4 +23,5 @@ func NewModule(db database.BaseDatabase, logger logger.Logger) *Module {
 
 func (m *Module) RegisterRoutes(router *gin.Engine) {
 	router.GET("/healthz", middleware.EmptyQueryParameterChecker(), m.handler.Healthz)
+	router.GET("/cicd", middleware.EmptyQueryParameterChecker(), m.handler.Healthz)
 }
